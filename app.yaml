@@ -1,0 +1,27 @@
+schemaVersion: 1
+slug: garden-roof-deck
+name: Garden Roof Deck
+kind: expo
+status: active
+repo: /srv/projects/garden-roof-deck
+basePath: /apps/garden-roof-deck/
+apiBasePath: /api/garden-roof-deck/
+runtime:
+  composeProject: ocapp-garden-roof-deck
+  composeFile: compose.yaml
+  runtimeDir: /srv/runtime/garden-roof-deck
+  environmentFile: /srv/projects/garden-roof-deck/.env
+sharing:
+  exposure: tailscale-serve
+  authMode: trusted-tailnet
+backend:
+  framework: fastapi
+  healthPath: /health
+  stripPrefix: true
+  port: 18100
+mobile:
+  framework: expo
+  packageManager: npm
+  webBuildCommand: npx expo export --platform web
+  webOutputDir: dist
+  nativeBuildMode: eas-later

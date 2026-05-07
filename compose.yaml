@@ -1,0 +1,16 @@
+services:
+  api:
+    build:
+      context: ./backend
+    container_name: ocapp-garden-roof-deck-api
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:18100:8000"
+    volumes:
+      - /srv/runtime/garden-roof-deck:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
