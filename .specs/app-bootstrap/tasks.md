@@ -30,5 +30,5 @@
 ## Phase 5 — Handoff
 
 - [x] Update this spec if implementation differs.
-- [ ] Commit checkpoint after scaffold is valid.
+- [x] Commit checkpoint after scaffold is valid.
 - [x] Wait for the design/theme spec before styling beyond plain placeholders.
