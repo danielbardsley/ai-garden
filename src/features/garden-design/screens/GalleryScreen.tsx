@@ -1,0 +1,110 @@
+import { useRouter } from 'expo-router';
+import { useMemo, useState } from 'react';
+import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
+
+import { allPhotos, fmtDate, PlantPhoto, plantById, plants } from '../data';
+import { BottomNav } from '../components/BottomNav';
+import { Chip, GlyphIcon, IconButton, PhotoTreatment, ScreenScaffold, SerifText } from '../components/primitives';
+import { theme } from '../theme';
+
+export function GalleryScreen() {
+  const router = useRouter();
+  const [filter, setFilter] = useState('all');
+  const [lightbox, setLightbox] = useState<PlantPhoto | null>(null);
+  const photos = useMemo(() => allPhotos(), []);
+  const visible = filter === 'all' ? photos : photos.filter((photo) => photo.plantId === filter);
+  const groups = visible.reduce<Record<string, { label: string; items: PlantPhoto[] }>>((acc, photo) => {
+    const date = new Date(`${photo.d}T12:00:00`);
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    acc[key] ??= { label: date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }), items: [] };
+    acc[key].items.push(photo);
+    return acc;
+  }, {});
+  const keys = Object.keys(groups).sort().reverse();
+
+  return (
+    <ScreenScaffold>
+      <ScrollView contentContainerStyle={{ paddingTop: 54, paddingBottom: 122 }}>
+        <View style={{ paddingHorizontal: 20, marginBottom: 18 }}>
+          <Text style={{ color: theme.inkMuted, fontSize: 11, fontWeight: '700', letterSpacing: 1.4, textTransform: 'uppercase', marginBottom: 6 }}>Gallery</Text>
+          <SerifText style={{ color: theme.ink, fontSize: 36, lineHeight: 38 }}>
+            <SerifText style={{ fontSize: 36, fontStyle: 'italic' }}>{photos.length}</SerifText> entries,{`\n`}across {plants.length} plants
+          </SerifText>
+        </View>
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 20, paddingBottom: 18 }}>
+          <Chip label="All photos" active={filter === 'all'} onPress={() => setFilter('all')} theme={theme} />
+          {plants.map((plant) => <Chip key={plant.id} label={plant.name} active={filter === plant.id} onPress={() => setFilter(plant.id)} theme={theme} swatch={plant.swatch[0]} />)}
+        </ScrollView>
+
+        {keys.map((key) => (
+          <View key={key} style={{ marginBottom: 26 }}>
+            <View style={{ paddingHorizontal: 20, marginBottom: 10, flexDirection: 'row', alignItems: 'baseline', gap: 12 }}>
+              <SerifText style={{ color: theme.ink, fontSize: 17, fontStyle: 'italic' }}>{groups[key].label}</SerifText>
+              <View style={{ flex: 1, height: 1, backgroundColor: theme.line }} />
+              <Text style={{ color: theme.inkMuted, fontSize: 11 }}>{groups[key].items.length}</Text>
+            </View>
+            <View style={{ paddingHorizontal: 20, flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+              {groups[key].items.map((photo) => (
+                <Pressable key={photo.id} onPress={() => setLightbox(photo)} style={{ width: '32%', aspectRatio: 1, borderRadius: 11, overflow: 'hidden' }}>
+                  <PhotoTreatment tone={photo.tone} glyph={photo.plantGlyph} style={{ flex: 1 }} radius={11} />
+                  <View style={{ position: 'absolute', top: 5, left: 5, borderRadius: 999, backgroundColor: 'rgba(0,0,0,0.42)', paddingHorizontal: 6, paddingVertical: 2 }}>
+                    <Text style={{ color: '#fff', fontSize: 9 }}>{fmtDate(photo.d, { short: true })}</Text>
+                  </View>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        ))}
+
+        {filter !== 'all' ? (
+          <View style={{ paddingHorizontal: 20 }}>
+            <Pressable onPress={() => router.push(`/plants/${filter}`)} style={{ borderRadius: 15, backgroundColor: theme.surface, borderWidth: 0.5, borderColor: theme.line, padding: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Text style={{ color: theme.ink, fontSize: 14, fontWeight: '600' }}>Open {plantById(filter).name} detail</Text>
+              <Text style={{ color: theme.inkMuted, fontSize: 20 }}>›</Text>
+            </Pressable>
+          </View>
+        ) : null}
+      </ScrollView>
+      <BottomNav />
+      <PhotoLightbox photo={lightbox} onClose={() => setLightbox(null)} />
+    </ScreenScaffold>
+  );
+}
+
+function PhotoLightbox({ photo, onClose }: { photo: PlantPhoto | null; onClose: () => void }) {
+  const router = useRouter();
+  if (!photo) return null;
+  const plant = plantById(photo.plantId);
+  const tags = ['leaves', 'healthy color', plant.common.toLowerCase().split(' ')[0], 'morning light'];
+  return (
+    <Modal visible transparent animationType="fade" onRequestClose={onClose}>
+      <View style={{ flex: 1, backgroundColor: 'rgba(15,18,15,0.96)', paddingTop: 54 }}>
+        <View style={{ paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <IconButton label="Close photo" onPress={onClose} dark theme={theme}><GlyphIcon name="close" color="#fff" /></IconButton>
+          <View style={{ alignItems: 'center' }}>
+            <Text style={{ color: 'rgba(255,255,255,0.72)', fontSize: 11, letterSpacing: 0.5 }}>{fmtDate(photo.d, { year: true }).toUpperCase()}</Text>
+            <Text style={{ color: '#fff', fontSize: 14, marginTop: 2 }}>{plant.common}</Text>
+          </View>
+          <View style={{ width: 40 }} />
+        </View>
+        <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 18 }}>
+          <PhotoTreatment tone={photo.tone} glyph={photo.plantGlyph} style={{ width: '100%', aspectRatio: 1 / 1.18 }} radius={18} />
+        </View>
+        <View style={{ margin: 16, marginBottom: 28, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.10)', padding: 16 }}>
+          <Text style={{ color: '#fff', fontSize: 14, lineHeight: 20, marginBottom: 12 }}>{photo.note}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 9 }}>
+            <GlyphIcon name="sparkle" color="#fff" size={15} />
+            <Text style={{ color: 'rgba(255,255,255,0.72)', fontSize: 10, textTransform: 'uppercase', letterSpacing: 1.1 }}>AI auto-tags</Text>
+          </View>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+            {tags.map((tag) => <Text key={tag} style={{ color: '#fff', fontSize: 12, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.12)' }}>{tag}</Text>)}
+          </View>
+          <Pressable onPress={() => { onClose(); router.push(`/plants/${plant.id}`); }} style={{ marginTop: 12 }}>
+            <Text style={{ color: '#fff', fontWeight: '700' }}>Open {plant.name} →</Text>
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
+  );
+}

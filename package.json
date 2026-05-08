@@ -2,18 +2,20 @@
   "scripts": {
     "start": "expo start",
     "web": "expo start --web",
-    "build:web": "EXPO_PUBLIC_BASE_PATH='/apps/garden-roof-deck/' EXPO_PUBLIC_API_BASE_PATH='/api/garden-roof-deck/' npx expo export --platform web --output-dir dist",
+    "build:web": "EXPO_WEB_BASE_URL='/apps/garden-roof-deck' EXPO_PUBLIC_BASE_PATH='/apps/garden-roof-deck/' EXPO_PUBLIC_API_BASE_PATH='/api/garden-roof-deck/' npx expo export --platform web --output-dir dist",
     "smoke:web": "test -f dist/index.html",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "expo": "latest",
-    "expo-router": "latest",
-    "react": "latest",
-    "react-native": "latest",
-    "react-native-web": "latest"
+    "expo": "~54.0.34",
+    "expo-router": "~6.0.23",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-web": "^0.21.0"
   },
   "devDependencies": {
+    "@types/react": "~19.1.10",
     "typescript": "latest"
   },
   "main": "expo-router/entry"

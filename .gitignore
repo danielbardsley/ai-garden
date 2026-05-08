@@ -5,3 +5,5 @@ dist/
 frontend/dist/
 __pycache__/
 .pytest_cache/
+
+.expo/
