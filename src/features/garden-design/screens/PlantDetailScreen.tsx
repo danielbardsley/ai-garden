@@ -76,7 +76,7 @@ export function PlantDetailScreen() {
           ))}
         </View>
 
-        {tab === 'timeline' ? <Timeline observations={observations} photos={photos} glyph={plant.glyph ?? ''} onCamera={() => router.push('/camera')} /> : null}
+        {tab === 'timeline' ? <Timeline observations={observations} photos={photos} glyph={plant.glyph ?? ''} onCamera={() => router.push(`/camera?plantId=${plant.id}`)} /> : null}
         {tab === 'chat' ? <StaticChat plantName={plant.displayName} common={plant.commonName ?? 'plant'} photoCount={photos.length} /> : null}
         {tab === 'care' ? <CareNotes events={careEvents} /> : null}
       </ScrollView>

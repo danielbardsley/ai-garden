@@ -8,6 +8,8 @@
   },
   "dependencies": {
     "expo": "~54.0.34",
+    "expo-camera": "~17.0.10",
+    "expo-file-system": "~19.0.22",
     "expo-router": "~6.0.23",
     "expo-sqlite": "~16.0.10",
     "react": "19.1.0",

@@ -5,11 +5,11 @@ module.exports = {
     name: 'Garden Roof Deck',
     slug: 'garden-roof-deck',
     scheme: 'garden-roof-deck',
-    plugins: ['expo-sqlite'],
+    plugins: ['expo-sqlite', 'expo-camera'],
     ios: {
       infoPlist: {
         NSCameraUsageDescription:
-          'Garden Roof Deck will use the camera to add plant and garden photos when photo capture is implemented.',
+          'Garden Roof Deck uses the camera to add plant and garden photos to your local journal.',
         NSPhotoLibraryUsageDescription:
           'Garden Roof Deck will use the photo library to add garden images to the gallery when media import is implemented.',
       },
