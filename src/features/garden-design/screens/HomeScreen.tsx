@@ -1,14 +1,16 @@
 import { useRouter } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
-import { plants, relDays } from '../data';
+import { useHomeGardenRecords } from '../../garden-records/hooks/useGardenRecords';
+import { latestPhotoForPlant, plantSwatch, relDays } from '../../garden-records/viewModels';
 import { BottomNav } from '../components/BottomNav';
 import { GlyphIcon, MonoText, PhotoTreatment, ScreenScaffold, SectionHeader, SerifText, StatusDot } from '../components/primitives';
 import { theme } from '../theme';
 
 export function HomeScreen() {
   const router = useRouter();
-  const today = plants.filter((plant) => plant.status.kind === 'warn' || /today|tomorrow/i.test(plant.status.next));
+  const { data, loading, error } = useHomeGardenRecords();
+  const { plants, attentionPlants } = data;
 
   return (
     <ScreenScaffold>
@@ -21,6 +23,8 @@ export function HomeScreen() {
             Good morning,{`\n`}
             <SerifText style={{ color: theme.primary, fontSize: 38, fontStyle: 'italic' }}>the deck</SerifText> is waking up.
           </SerifText>
+          {loading ? <Text style={{ color: theme.inkMuted, marginTop: 10 }}>Opening local garden journal…</Text> : null}
+          {error ? <Text style={{ color: theme.accent, marginTop: 10 }}>Storage error: {error.message}</Text> : null}
         </View>
 
         <View style={{ marginHorizontal: 20, marginBottom: 24, padding: 15, backgroundColor: theme.surface, borderRadius: 18, borderWidth: 0.5, borderColor: theme.line, flexDirection: 'row', alignItems: 'center', gap: 13 }}>
@@ -34,23 +38,26 @@ export function HomeScreen() {
           <SerifText style={{ color: theme.inkSoft, fontSize: 14, fontStyle: 'italic' }}>week 19</SerifText>
         </View>
 
-        {today.length > 0 ? (
+        {attentionPlants.length > 0 ? (
           <View style={{ marginBottom: 26 }}>
-            <SectionHeader title="On your list today" action={`${today.length} items`} theme={theme} />
+            <SectionHeader title="On your list today" action={`${attentionPlants.length} items`} theme={theme} />
             <View style={{ paddingHorizontal: 20, gap: 8 }}>
-              {today.map((plant) => (
-                <Pressable key={plant.id} onPress={() => router.push(`/plants/${plant.id}`)} style={{ backgroundColor: theme.surface, borderRadius: 15, borderWidth: 0.5, borderColor: theme.line, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                  <PhotoTreatment tone={plant.swatch[0]} glyph={plant.glyph} style={{ width: 40, height: 40 }} radius={11} />
-                  <View style={{ flex: 1 }}>
-                    <Text style={{ color: theme.ink, fontSize: 14, fontWeight: '600' }}>{plant.status.next} · <Text style={{ color: theme.inkSoft, fontWeight: '400' }}>{plant.common}</Text></Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 3 }}>
-                      <StatusDot kind={plant.status.kind} theme={theme} />
-                      <Text style={{ color: theme.inkMuted, fontSize: 11 }}>{plant.status.label} · {plant.location}</Text>
+              {attentionPlants.map((plant) => {
+                const swatch = plantSwatch(plant);
+                return (
+                  <Pressable key={plant.id} onPress={() => router.push(`/plants/${plant.id}`)} style={{ backgroundColor: theme.surface, borderRadius: 15, borderWidth: 0.5, borderColor: theme.line, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                    <PhotoTreatment tone={swatch[0]} glyph={plant.glyph ?? undefined} style={{ width: 40, height: 40 }} radius={11} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ color: theme.ink, fontSize: 14, fontWeight: '600' }}>{plant.nextActionLabel} · <Text style={{ color: theme.inkSoft, fontWeight: '400' }}>{plant.commonName}</Text></Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 3 }}>
+                        <StatusDot kind={plant.statusKind === 'archived' ? 'idle' : plant.statusKind} theme={theme} />
+                        <Text style={{ color: theme.inkMuted, fontSize: 11 }}>{plant.statusLabel} · {plant.locationName}</Text>
+                      </View>
                     </View>
-                  </View>
-                  <Text style={{ color: theme.inkMuted, fontSize: 20 }}>›</Text>
-                </Pressable>
-              ))}
+                    <Text style={{ color: theme.inkMuted, fontSize: 20 }}>›</Text>
+                  </Pressable>
+                );
+              })}
             </View>
           </View>
         ) : null}
@@ -58,21 +65,22 @@ export function HomeScreen() {
         <SectionHeader title="In the garden" action={`${plants.length} plants`} theme={theme} />
         <View style={{ paddingHorizontal: 20, flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
           {plants.map((plant) => {
-            const latest = plant.photos[0];
+            const swatch = plantSwatch(plant);
+            const latest = latestPhotoForPlant(plant);
             return (
               <Pressable key={plant.id} onPress={() => router.push(`/plants/${plant.id}`)} style={{ width: '48%', marginBottom: 10 }}>
                 <View style={{ aspectRatio: 1 / 1.15, borderRadius: 16, overflow: 'hidden', borderWidth: 0.5, borderColor: theme.line }}>
-                  <PhotoTreatment tone={latest.tone} glyph={plant.glyph} style={{ flex: 1 }} />
+                  <PhotoTreatment tone={latest?.tone ?? swatch[0]} glyph={plant.glyph ?? undefined} style={{ flex: 1 }} />
                   <View style={{ position: 'absolute', top: 8, left: 8, borderRadius: 999, backgroundColor: theme.name === 'Forest' ? 'rgba(31,42,35,0.82)' : 'rgba(255,255,255,0.86)', paddingVertical: 4, paddingHorizontal: 8, flexDirection: 'row', alignItems: 'center' }}>
-                    <StatusDot kind={plant.status.kind} theme={theme} />
-                    <Text style={{ color: theme.ink, fontSize: 10, fontWeight: '600' }}>{plant.status.label}</Text>
+                    <StatusDot kind={plant.statusKind === 'archived' ? 'idle' : plant.statusKind} theme={theme} />
+                    <Text style={{ color: theme.ink, fontSize: 10, fontWeight: '600' }}>{plant.statusLabel}</Text>
                   </View>
                 </View>
                 <View style={{ paddingHorizontal: 4, paddingTop: 9 }}>
-                  <SerifText style={{ color: theme.ink, fontSize: 18, fontWeight: '600' }}>{plant.name}</SerifText>
+                  <SerifText style={{ color: theme.ink, fontSize: 18, fontWeight: '600' }}>{plant.displayName}</SerifText>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 3 }}>
-                    <Text style={{ color: theme.inkSoft, fontSize: 11 }}>{plant.common}</Text>
-                    <MonoText style={{ color: theme.inkMuted, fontSize: 10 }}>{relDays(latest.d)}</MonoText>
+                    <Text style={{ color: theme.inkSoft, fontSize: 11 }}>{plant.commonName}</Text>
+                    <MonoText style={{ color: theme.inkMuted, fontSize: 10 }}>{relDays(latest?.capturedOn)}</MonoText>
                   </View>
                 </View>
               </Pressable>

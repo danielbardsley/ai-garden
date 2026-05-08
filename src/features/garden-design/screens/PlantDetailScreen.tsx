@@ -2,7 +2,9 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
-import { fmtDate, plantById, PlantPhoto, relDays } from '../data';
+import { CareEventRecord, ObservationRecord, PhotoRecord } from '../../garden-records/models/GardenRecordTypes';
+import { fmtDate, relDays } from '../../garden-records/viewModels';
+import { usePlantDetailRecord } from '../../garden-records/hooks/useGardenRecords';
 import { BottomNav } from '../components/BottomNav';
 import { GlyphIcon, IconButton, MonoText, PhotoTreatment, ScreenScaffold, SerifText, StatusDot } from '../components/primitives';
 import { theme } from '../theme';
@@ -10,42 +12,56 @@ import { theme } from '../theme';
 export function PlantDetailScreen() {
   const router = useRouter();
   const { plantId } = useLocalSearchParams();
-  const plant = plantById(plantId);
+  const id = Array.isArray(plantId) ? plantId[0] : plantId ?? '';
+  const { data: detail, loading, error } = usePlantDetailRecord(id);
   const [tab, setTab] = useState<'timeline' | 'chat' | 'care'>('timeline');
-  const latest = plant.photos[0];
-  const yearsTracking = 2026 - plant.yearStarted + 1;
+
+  if (!detail) {
+    return (
+      <ScreenScaffold>
+        <View style={{ flex: 1, padding: 24, paddingTop: 80 }}>
+          <Text style={{ color: error ? theme.accent : theme.ink, fontSize: 18 }}>{error ? error.message : loading ? 'Loading plant…' : 'Plant not found'}</Text>
+        </View>
+        <BottomNav />
+      </ScreenScaffold>
+    );
+  }
+
+  const { plant, photos, observations, careEvents } = detail;
+  const latest = photos[0];
+  const yearsTracking = 2026 - (plant.startedYear ?? 2026) + 1;
 
   return (
     <ScreenScaffold>
       <ScrollView contentContainerStyle={{ paddingBottom: 124 }}>
         <View style={{ width: '100%', aspectRatio: 1 / 1.04 }}>
-          <PhotoTreatment tone={latest.tone} glyph={plant.glyph} style={{ flex: 1, borderRadius: 0 }} radius={0} />
+          <PhotoTreatment tone={latest?.tone ?? plant.primaryColor ?? undefined} glyph={plant.glyph ?? undefined} style={{ flex: 1, borderRadius: 0 }} radius={0} />
           <View style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: 'rgba(0,0,0,0.12)' }} />
           <View style={{ position: 'absolute', top: 54, left: 16, right: 16, flexDirection: 'row', justifyContent: 'space-between' }}>
             <IconButton label="Back" onPress={() => router.push('/')} theme={theme}><GlyphIcon name="back" color={theme.ink} size={28} /></IconButton>
             <IconButton label="More" theme={theme}><Text style={{ color: theme.ink, fontWeight: '800' }}>•••</Text></IconButton>
           </View>
           <View style={{ position: 'absolute', left: 24, right: 24, bottom: 24 }}>
-            <Text style={{ color: 'rgba(255,255,255,0.86)', fontSize: 11, letterSpacing: 1.6, fontWeight: '700', textTransform: 'uppercase', marginBottom: 4 }}>{plant.common}</Text>
-            <SerifText style={{ color: '#fff', fontSize: 42, lineHeight: 44 }}>{plant.name}</SerifText>
-            <SerifText style={{ color: 'rgba(255,255,255,0.86)', fontSize: 14, fontStyle: 'italic', marginTop: 4 }}>{plant.variety}</SerifText>
+            <Text style={{ color: 'rgba(255,255,255,0.86)', fontSize: 11, letterSpacing: 1.6, fontWeight: '700', textTransform: 'uppercase', marginBottom: 4 }}>{plant.commonName}</Text>
+            <SerifText style={{ color: '#fff', fontSize: 42, lineHeight: 44 }}>{plant.displayName}</SerifText>
+            <SerifText style={{ color: 'rgba(255,255,255,0.86)', fontSize: 14, fontStyle: 'italic', marginTop: 4 }}>{plant.varietyName}</SerifText>
           </View>
         </View>
 
         <View style={{ backgroundColor: theme.surface, borderBottomWidth: 0.5, borderBottomColor: theme.line, padding: 16, flexDirection: 'row', gap: 12 }}>
           <Stat value={`Y${yearsTracking}`} label="tracking" />
           <Divider />
-          <Stat value={`${plant.photos.length}`} label="photos" />
+          <Stat value={`${photos.length}`} label="photos" />
           <Divider />
           <View style={{ flex: 1 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}><StatusDot kind={plant.status.kind} theme={theme} /><SerifText style={{ fontSize: 19, color: theme.ink }}>{plant.status.label}</SerifText></View>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}><StatusDot kind={plant.statusKind === 'archived' ? 'idle' : plant.statusKind} theme={theme} /><SerifText style={{ fontSize: 19, color: theme.ink }}>{plant.statusLabel}</SerifText></View>
             <Text style={{ color: theme.inkMuted, fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, marginTop: 3 }}>status</Text>
           </View>
         </View>
 
         <View style={{ paddingHorizontal: 20, paddingTop: 18 }}>
-          <SerifText style={{ color: theme.inkSoft, fontSize: 16, lineHeight: 23, fontStyle: 'italic' }}>{plant.summary}</SerifText>
-          <Text style={{ color: theme.inkMuted, fontSize: 12, marginTop: 12 }}>📍 {plant.location} · Planted {fmtDate(plant.plantedAt, { year: true })}</Text>
+          <SerifText style={{ color: theme.inkSoft, fontSize: 16, lineHeight: 23, fontStyle: 'italic' }}>{plant.description}</SerifText>
+          <Text style={{ color: theme.inkMuted, fontSize: 12, marginTop: 12 }}>📍 {plant.locationName} · Planted {plant.plantedDate ? fmtDate(plant.plantedDate, { year: true }) : 'unknown'}</Text>
         </View>
 
         <View style={{ marginHorizontal: 20, marginTop: 20, marginBottom: 16, padding: 3, borderRadius: 12, backgroundColor: theme.bgSoft, flexDirection: 'row' }}>
@@ -60,9 +76,9 @@ export function PlantDetailScreen() {
           ))}
         </View>
 
-        {tab === 'timeline' ? <Timeline photos={plant.photos} glyph={plant.glyph} onCamera={() => router.push('/camera')} /> : null}
-        {tab === 'chat' ? <StaticChat plantName={plant.name} common={plant.common} photoCount={plant.photos.length} /> : null}
-        {tab === 'care' ? <CareNotes notes={plant.care} /> : null}
+        {tab === 'timeline' ? <Timeline observations={observations} photos={photos} glyph={plant.glyph ?? ''} onCamera={() => router.push('/camera')} /> : null}
+        {tab === 'chat' ? <StaticChat plantName={plant.displayName} common={plant.commonName ?? 'plant'} photoCount={photos.length} /> : null}
+        {tab === 'care' ? <CareNotes events={careEvents} /> : null}
       </ScrollView>
       <BottomNav />
     </ScreenScaffold>
@@ -74,11 +90,12 @@ function Stat({ value, label }: { value: string; label: string }) {
   return <View style={{ flex: 1 }}><SerifText style={{ fontSize: 19, color: theme.ink }}>{value}</SerifText><Text style={{ color: theme.inkMuted, fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, marginTop: 3 }}>{label}</Text></View>;
 }
 
-function Timeline({ photos, glyph, onCamera }: { photos: PlantPhoto[]; glyph: string; onCamera: () => void }) {
-  const byYear = photos.reduce<Record<string, PlantPhoto[]>>((acc, photo) => {
-    const year = photo.d.slice(0, 4);
+function Timeline({ observations, photos, glyph, onCamera }: { observations: ObservationRecord[]; photos: PhotoRecord[]; glyph: string; onCamera: () => void }) {
+  const photoByObservation = new Map(photos.map((photo) => [photo.observationId, photo]));
+  const byYear = observations.reduce<Record<string, ObservationRecord[]>>((acc, observation) => {
+    const year = observation.observedOn.slice(0, 4);
     acc[year] ??= [];
-    acc[year].push(photo);
+    acc[year].push(observation);
     return acc;
   }, {});
   return (
@@ -93,15 +110,18 @@ function Timeline({ photos, glyph, onCamera }: { photos: PlantPhoto[]; glyph: st
             <View style={{ flex: 1, height: 1, backgroundColor: theme.line }} />
             <Text style={{ color: theme.inkMuted, fontSize: 11 }}>{byYear[year].length} entries</Text>
           </View>
-          {byYear[year].map((photo) => (
-            <View key={photo.id} style={{ flexDirection: 'row', gap: 14, marginBottom: 12 }}>
-              <PhotoTreatment tone={photo.tone} glyph={glyph} style={{ width: 78, height: 78 }} radius={14} />
-              <View style={{ flex: 1, paddingTop: 4 }}>
-                <MonoText style={{ fontSize: 11, color: theme.inkMuted }}>{fmtDate(photo.d, { short: true }).toUpperCase()} · {relDays(photo.d)}</MonoText>
-                <Text style={{ color: theme.ink, fontSize: 14, lineHeight: 20, marginTop: 4 }}>{photo.note}</Text>
+          {byYear[year].map((observation) => {
+            const photo = photoByObservation.get(observation.id);
+            return (
+              <View key={observation.id} style={{ flexDirection: 'row', gap: 14, marginBottom: 12 }}>
+                <PhotoTreatment tone={photo?.tone ?? undefined} glyph={glyph} style={{ width: 78, height: 78 }} radius={14} />
+                <View style={{ flex: 1, paddingTop: 4 }}>
+                  <MonoText style={{ fontSize: 11, color: theme.inkMuted }}>{fmtDate(observation.observedOn, { short: true }).toUpperCase()} · {relDays(observation.observedOn)}</MonoText>
+                  <Text style={{ color: theme.ink, fontSize: 14, lineHeight: 20, marginTop: 4 }}>{observation.note}</Text>
+                </View>
               </View>
-            </View>
-          ))}
+            );
+          })}
         </View>
       ))}
     </View>
@@ -128,9 +148,9 @@ function StaticChat({ plantName, common, photoCount }: { plantName: string; comm
 }
 
 function ChatBubble({ text, me = false }: { text: string; me?: boolean }) {
-  return <View style={{ alignSelf: me ? 'flex-end' : 'flex-start', maxWidth: '82%', borderRadius: 16, padding: 12, backgroundColor: me ? theme.primary : theme.surface }}><Text style={{ color: me ? '#fff' : theme.ink, fontSize: 14, lineHeight: 20 }}>{text}</Text></View>;
+  return <View style={{ alignSelf: me ? 'flex-end' : 'flex-start', maxWidth: '82%', borderRadius: 16, padding: 12, backgroundColor: me ? theme.primary : theme.surface }}><Text style={{ color: me ? theme.bg : theme.ink, fontSize: 14, lineHeight: 20 }}>{text}</Text></View>;
 }
 
-function CareNotes({ notes }: { notes: string[] }) {
-  return <View style={{ paddingHorizontal: 20, gap: 10 }}>{notes.map((note, index) => <View key={note} style={{ backgroundColor: theme.surface, borderRadius: 15, borderWidth: 0.5, borderColor: theme.line, padding: 15 }}><Text style={{ color: theme.inkMuted, fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 5 }}>Care note {index + 1}</Text><Text style={{ color: theme.ink, fontSize: 14, lineHeight: 20 }}>{note}</Text></View>)}</View>;
+function CareNotes({ events }: { events: CareEventRecord[] }) {
+  return <View style={{ paddingHorizontal: 20, gap: 10 }}>{events.map((event, index) => <View key={event.id} style={{ backgroundColor: theme.surface, borderRadius: 15, borderWidth: 0.5, borderColor: theme.line, padding: 15 }}><Text style={{ color: theme.inkMuted, fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 5 }}>Care note {index + 1} · {event.eventType}</Text><Text style={{ color: theme.ink, fontSize: 14, lineHeight: 20 }}>{event.note}</Text></View>)}</View>;
 }

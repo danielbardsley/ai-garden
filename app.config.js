@@ -5,7 +5,7 @@ module.exports = {
     name: 'Garden Roof Deck',
     slug: 'garden-roof-deck',
     scheme: 'garden-roof-deck',
-    plugins: [],
+    plugins: ['expo-sqlite'],
     ios: {
       infoPlist: {
         NSCameraUsageDescription:

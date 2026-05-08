@@ -28,9 +28,9 @@
 - [x] `npm run smoke:web`
 - [x] `scripts/app-platform validate`
 - [x] `scripts/app-platform smoke garden-roof-deck`
-- [ ] Manual Expo Go/web spot check if the dev server is running.
+- [x] Manual Expo Go/web spot check if the dev server is running.
 
 ## Checkpoint
 
 - [x] Update acceptance/decisions if implementation deviates from spec.
-- [ ] Commit design build-out after validation passes.
+- [x] Commit design build-out after validation passes.
