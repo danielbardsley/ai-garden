@@ -55,4 +55,4 @@ export const forestTheme: GardenTheme = {
   paperGrain: 'rgba(240,234,216,0.018)',
 };
 
-export const theme = mossTheme;
+export const theme = forestTheme;

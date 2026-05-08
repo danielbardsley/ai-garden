@@ -1,10 +1,10 @@
 import { Pressable, StyleProp, Text, View, ViewStyle } from 'react-native';
 
-import { GardenTheme } from '../theme';
+import { GardenTheme, theme as defaultTheme } from '../theme';
 
-export function ScreenScaffold({ children, bottomInset = 96 }: { children: React.ReactNode; bottomInset?: number }) {
+export function ScreenScaffold({ children, bottomInset = 96, theme = defaultTheme }: { children: React.ReactNode; bottomInset?: number; theme?: GardenTheme }) {
   return (
-    <View style={{ flex: 1, backgroundColor: '#f4f0e6' }}>
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <View
         style={{
           position: 'absolute',
@@ -13,7 +13,7 @@ export function ScreenScaffold({ children, bottomInset = 96 }: { children: React
           width: 220,
           height: 220,
           borderRadius: 110,
-          backgroundColor: 'rgba(107,137,100,0.10)',
+          backgroundColor: theme.paperGrain,
         }}
       />
       <View
@@ -24,7 +24,7 @@ export function ScreenScaffold({ children, bottomInset = 96 }: { children: React
           width: 260,
           height: 260,
           borderRadius: 130,
-          backgroundColor: 'rgba(200,100,61,0.07)',
+          backgroundColor: theme.name === 'Forest' ? 'rgba(232,168,124,0.045)' : 'rgba(200,100,61,0.07)',
         }}
       />
       <View style={{ flex: 1, paddingBottom: bottomInset }}>{children}</View>
@@ -128,7 +128,7 @@ export function IconButton({ label, onPress, dark = false, theme, children }: { 
         borderRadius: 20,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: dark ? 'rgba(255,255,255,0.18)' : 'rgba(255,253,247,0.78)',
+        backgroundColor: dark ? 'rgba(255,255,255,0.18)' : theme.name === 'Forest' ? 'rgba(50,66,57,0.92)' : 'rgba(255,253,247,0.78)',
         borderWidth: 0.5,
         borderColor: dark ? 'rgba(255,255,255,0.22)' : theme.line,
       }}

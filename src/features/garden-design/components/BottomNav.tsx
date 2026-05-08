@@ -30,7 +30,7 @@ export function BottomNav() {
         bottom: 18,
         height: 66,
         borderRadius: 34,
-        backgroundColor: 'rgba(255,253,247,0.92)',
+        backgroundColor: theme.name === 'Forest' ? 'rgba(40,56,50,0.92)' : 'rgba(255,253,247,0.92)',
         borderWidth: 0.5,
         borderColor: theme.line,
         flexDirection: 'row',
@@ -63,7 +63,7 @@ export function BottomNav() {
           shadowOffset: { width: 0, height: 6 },
         }}
       >
-        <GlyphIcon name="camera" color="#fff" size={24} />
+        <GlyphIcon name="camera" color={theme.bg} size={24} />
       </Pressable>
       <Tab label="Reminders" icon="chat" active={false} onPress={() => undefined} />
       <Tab label="Profile" icon="profile" active={false} onPress={() => undefined} />

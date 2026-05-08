@@ -63,7 +63,7 @@ export function HomeScreen() {
               <Pressable key={plant.id} onPress={() => router.push(`/plants/${plant.id}`)} style={{ width: '48%', marginBottom: 10 }}>
                 <View style={{ aspectRatio: 1 / 1.15, borderRadius: 16, overflow: 'hidden', borderWidth: 0.5, borderColor: theme.line }}>
                   <PhotoTreatment tone={latest.tone} glyph={plant.glyph} style={{ flex: 1 }} />
-                  <View style={{ position: 'absolute', top: 8, left: 8, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.86)', paddingVertical: 4, paddingHorizontal: 8, flexDirection: 'row', alignItems: 'center' }}>
+                  <View style={{ position: 'absolute', top: 8, left: 8, borderRadius: 999, backgroundColor: theme.name === 'Forest' ? 'rgba(31,42,35,0.82)' : 'rgba(255,255,255,0.86)', paddingVertical: 4, paddingHorizontal: 8, flexDirection: 'row', alignItems: 'center' }}>
                     <StatusDot kind={plant.status.kind} theme={theme} />
                     <Text style={{ color: theme.ink, fontSize: 10, fontWeight: '600' }}>{plant.status.label}</Text>
                   </View>
