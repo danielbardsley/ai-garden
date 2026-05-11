@@ -4,6 +4,7 @@ import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 
 import { PhotoTreatment, ScreenScaffold, SerifText } from '../../garden-design/components/primitives';
 import { theme } from '../../garden-design/theme';
 import { SaveGardenSetupInput, SunExposure } from '../models/GardenSetup';
+import { gardenLocationDetectionService } from '../services/GardenLocationDetectionService';
 import { gardenGlyphs, gardenNameSuggestions, growingSpaceOptions, hardinessZones, sunExposureOptions } from '../onboardingOptions';
 
 type OnboardingDraft = SaveGardenSetupInput;
@@ -31,6 +32,8 @@ export function GardenOnboardingScreen({ onComplete }: { onComplete: (input: Sav
   const [draft, setDraft] = useState<OnboardingDraft>(initialDraft);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [detectingLocation, setDetectingLocation] = useState(false);
+  const [locationMessage, setLocationMessage] = useState<string | null>(null);
   const step = steps[index];
 
   const canAdvance = useMemo(() => {
@@ -44,6 +47,27 @@ export function GardenOnboardingScreen({ onComplete }: { onComplete: (input: Sav
     ...current,
     growingSpaces: current.growingSpaces.includes(id) ? current.growingSpaces.filter((item) => item !== id) : [...current.growingSpaces, id],
   }));
+
+  const detectLocation = async () => {
+    if (detectingLocation) return;
+    setDetectingLocation(true);
+    setLocationMessage(null);
+    const result = await gardenLocationDetectionService.detect();
+    if (result.status === 'detected') {
+      set({
+        locationLabel: result.locationLabel,
+        locationSource: 'detected',
+        latitude: result.coordinates.latitude,
+        longitude: result.coordinates.longitude,
+        hardinessZone: result.hardinessZone ?? draft.hardinessZone ?? null,
+        hardinessZoneSource: result.hardinessZone ? 'detected' : draft.hardinessZoneSource ?? null,
+      });
+      setLocationMessage(result.hardinessZone ? `Detected ${result.locationLabel} · USDA ${result.hardinessZone} estimated.` : `Detected ${result.locationLabel}. Zone can be set manually.`);
+    } else {
+      setLocationMessage(result.message);
+    }
+    setDetectingLocation(false);
+  };
 
   const next = async () => {
     if (!canAdvance || saving) return;
@@ -76,7 +100,7 @@ export function GardenOnboardingScreen({ onComplete }: { onComplete: (input: Sav
         <ScrollView contentContainerStyle={{ paddingTop: 24, paddingBottom: 112 }}>
           {step.id === 'welcome' ? <WelcomeStep /> : null}
           {step.id === 'identity' ? <IdentityStep draft={draft} set={set} /> : null}
-          {step.id === 'place' ? <PlaceStep draft={draft} set={set} /> : null}
+          {step.id === 'place' ? <PlaceStep draft={draft} set={set} onDetectLocation={detectLocation} detectingLocation={detectingLocation} locationMessage={locationMessage} /> : null}
           {step.id === 'setup' ? <SetupStep draft={draft} toggleSpace={toggleSpace} /> : null}
           {step.id === 'ready' ? <ReadyStep draft={draft} /> : null}
           {error ? <Text style={{ color: theme.accent, marginHorizontal: 28, marginTop: 16 }}>{error}</Text> : null}
@@ -109,8 +133,9 @@ function IdentityStep({ draft, set }: { draft: OnboardingDraft; set: (patch: Par
   return <View style={{ paddingHorizontal: 28 }}><StepHeading eyebrow="Step 1 of 4" title={<>What should we <SerifText style={{ color: theme.primary, fontSize: 32, fontStyle: 'italic' }}>call</SerifText> it?</>} sub="The name shows up on your home screen and in future garden notes. You can change it later." /><View style={{ marginVertical: 22, padding: 14, backgroundColor: theme.surface, borderRadius: 16, borderWidth: 0.5, borderColor: theme.line, flexDirection: 'row', alignItems: 'center', gap: 12 }}><PhotoTreatment tone={theme.primary} glyph={draft.glyph ?? undefined} style={{ width: 44, height: 44 }} radius={12} /><View style={{ flex: 1 }}><SerifText numberOfLines={1} style={{ color: theme.ink, fontSize: 19, fontStyle: 'italic' }}>{draft.name || 'Untitled garden'}</SerifText><Text style={{ color: theme.inkMuted, fontSize: 10, letterSpacing: 0.8, marginTop: 4 }}>EST. {new Date().getFullYear()} · 0 plants</Text></View></View><Text style={{ color: theme.inkMuted, fontSize: 10, fontWeight: '800', letterSpacing: 1.4, textTransform: 'uppercase', marginBottom: 8 }}>Garden name</Text><TextInput autoFocus value={draft.name} onChangeText={(name) => set({ name })} placeholder="e.g. Back Garden" maxLength={28} placeholderTextColor={theme.inkMuted} style={{ backgroundColor: theme.surface, borderRadius: 14, borderWidth: 0.5, borderColor: theme.line, padding: 14, color: theme.ink, fontSize: 22, fontFamily: 'Georgia', fontStyle: 'italic' }} /><Text style={{ color: theme.inkMuted, fontSize: 11, marginTop: 6 }}>{draft.name.length}/28 · {draft.name.trim() ? 'ready' : 'a name helps memories stick'}</Text><Text style={{ color: theme.inkMuted, fontSize: 10, fontWeight: '800', letterSpacing: 1.4, textTransform: 'uppercase', marginTop: 22, marginBottom: 10 }}>Or borrow one</Text><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 7 }}>{gardenNameSuggestions.map((name) => <Pill key={name} label={name} active={draft.name === name} onPress={() => set({ name })} />)}</View><Text style={{ color: theme.inkMuted, fontSize: 10, fontWeight: '800', letterSpacing: 1.4, textTransform: 'uppercase', marginTop: 24, marginBottom: 10 }}>Specimen stamp</Text><View style={{ flexDirection: 'row', gap: 8 }}>{gardenGlyphs.map((glyph) => <Pressable key={glyph} onPress={() => set({ glyph })} style={{ width: 44, height: 44, borderRadius: 12, borderWidth: draft.glyph === glyph ? 1.5 : 0.5, borderColor: draft.glyph === glyph ? theme.primary : theme.line, backgroundColor: theme.surface, alignItems: 'center', justifyContent: 'center' }}><SerifText style={{ color: theme.ink, fontSize: 16, fontStyle: 'italic' }}>{glyph}</SerifText></Pressable>)}</View></View>;
 }
 
-function PlaceStep({ draft, set }: { draft: OnboardingDraft; set: (patch: Partial<OnboardingDraft>) => void }) {
-  return <View style={{ paddingHorizontal: 28 }}><StepHeading eyebrow="Step 2 of 4" title={<>Where is the <SerifText style={{ color: theme.primary, fontSize: 32, fontStyle: 'italic' }}>garden</SerifText>?</>} sub="A rough location and sun pattern helps weather context, AI care notes, and future reminders." /><Text style={{ color: theme.inkMuted, fontSize: 10, fontWeight: '800', letterSpacing: 1.4, textTransform: 'uppercase', marginTop: 22, marginBottom: 8 }}>City, postcode, or place</Text><TextInput value={draft.locationLabel} onChangeText={(locationLabel) => set({ locationLabel })} placeholder="Brooklyn, NY" placeholderTextColor={theme.inkMuted} style={{ backgroundColor: theme.surface, borderRadius: 14, borderWidth: 0.5, borderColor: theme.line, padding: 14, color: theme.ink, fontSize: 16 }} /><View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 22, marginBottom: 10 }}><Text style={{ color: theme.inkMuted, fontSize: 10, fontWeight: '800', letterSpacing: 1.4, textTransform: 'uppercase' }}>Hardiness zone</Text><SerifText style={{ color: theme.inkSoft, fontSize: 12, fontStyle: 'italic' }}>manual for now</SerifText></View><ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 7 }}>{hardinessZones.map((zone) => <Pill key={zone} label={zone} active={(draft.hardinessZone ?? 'Not sure') === zone} onPress={() => set({ hardinessZone: zone === 'Not sure' ? null : zone })} mono />)}</ScrollView><Text style={{ color: theme.inkMuted, fontSize: 10, fontWeight: '800', letterSpacing: 1.4, textTransform: 'uppercase', marginTop: 22, marginBottom: 10 }}>Daily sun</Text><View style={{ gap: 8 }}>{sunExposureOptions.map((option) => <ChoiceRow key={option.id} title={option.label} sub={option.sub} mark={option.mark} active={draft.sunExposure === option.id} onPress={() => set({ sunExposure: option.id as SunExposure })} />)}</View></View>;
+function PlaceStep({ draft, set, onDetectLocation, detectingLocation, locationMessage }: { draft: OnboardingDraft; set: (patch: Partial<OnboardingDraft>) => void; onDetectLocation: () => void; detectingLocation: boolean; locationMessage: string | null }) {
+  const zoneSource = draft.hardinessZoneSource === 'detected' ? 'estimated from location' : 'editable';
+  return <View style={{ paddingHorizontal: 28 }}><StepHeading eyebrow="Step 2 of 4" title={<>Where is the <SerifText style={{ color: theme.primary, fontSize: 32, fontStyle: 'italic' }}>garden</SerifText>?</>} sub="A rough location and sun pattern helps weather context, AI care notes, and future reminders." /><Pressable accessibilityRole="button" accessibilityLabel="Use current location" onPress={onDetectLocation} disabled={detectingLocation} style={{ marginTop: 22, borderRadius: 14, backgroundColor: theme.surface, borderWidth: 0.5, borderColor: theme.line, padding: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', opacity: detectingLocation ? 0.72 : 1 }}><View style={{ flex: 1 }}><Text style={{ color: theme.ink, fontSize: 14, fontWeight: '800' }}>{detectingLocation ? 'Detecting location…' : 'Use current location'}</Text><Text style={{ color: theme.inkSoft, fontSize: 12, marginTop: 2 }}>Fill location and estimate USDA zone automatically.</Text></View><Text style={{ color: theme.primary, fontSize: 18, fontWeight: '800' }}>⌖</Text></Pressable>{locationMessage ? <Text style={{ color: theme.inkSoft, fontSize: 12, lineHeight: 18, marginTop: 8 }}>{locationMessage}</Text> : null}<Text style={{ color: theme.inkMuted, fontSize: 10, fontWeight: '800', letterSpacing: 1.4, textTransform: 'uppercase', marginTop: 22, marginBottom: 8 }}>City, postcode, or place</Text><TextInput value={draft.locationLabel} onChangeText={(locationLabel) => set({ locationLabel, locationSource: 'manual', latitude: null, longitude: null })} placeholder="Brooklyn, NY" placeholderTextColor={theme.inkMuted} style={{ backgroundColor: theme.surface, borderRadius: 14, borderWidth: 0.5, borderColor: theme.line, padding: 14, color: theme.ink, fontSize: 16 }} /><View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 22, marginBottom: 10 }}><Text style={{ color: theme.inkMuted, fontSize: 10, fontWeight: '800', letterSpacing: 1.4, textTransform: 'uppercase' }}>Hardiness zone</Text><SerifText style={{ color: theme.inkSoft, fontSize: 12, fontStyle: 'italic' }}>{zoneSource}</SerifText></View><ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 7 }}>{hardinessZones.map((zone) => <Pill key={zone} label={zone} active={(draft.hardinessZone ?? 'Not sure') === zone} onPress={() => set({ hardinessZone: zone === 'Not sure' ? null : zone, hardinessZoneSource: zone === 'Not sure' ? null : 'manual' })} mono />)}</ScrollView><Text style={{ color: theme.inkMuted, fontSize: 10, fontWeight: '800', letterSpacing: 1.4, textTransform: 'uppercase', marginTop: 22, marginBottom: 10 }}>Daily sun</Text><View style={{ gap: 8 }}>{sunExposureOptions.map((option) => <ChoiceRow key={option.id} title={option.label} sub={option.sub} mark={option.mark} active={draft.sunExposure === option.id} onPress={() => set({ sunExposure: option.id as SunExposure })} />)}</View></View>;
 }
 
 function SetupStep({ draft, toggleSpace }: { draft: OnboardingDraft; toggleSpace: (id: string) => void }) {

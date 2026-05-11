@@ -9,3 +9,6 @@
 - Remove skip from the production onboarding flow; new users should complete setup before entering the app.
 - Defer goals and experience level to the future Profile/preferences feature instead of collecting them in onboarding v1.
 - Route users to Home after onboarding completion, with a prominent first-plant add/capture prompt rather than launching camera/add-plant directly.
+- Automatic location detection is opt-in via a button in onboarding; do not prompt for permission on screen load.
+- Use existing weather services for coordinates and USDA zone estimation rather than introducing a new provider in this feature.
+- Keep manual location/zone editing available after automatic detection because geolocation and USDA estimates can be unavailable or approximate.

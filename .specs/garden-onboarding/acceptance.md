@@ -6,6 +6,9 @@
 - Existing users with setup go directly to the main app.
 - User can name the garden and choose a short glyph/stamp.
 - User can enter a coarse location and choose/skip hardiness zone.
+- User can explicitly request automatic location detection during onboarding.
+- Successful detection fills a friendly location label or coarse coordinate label and applies an estimated USDA zone when available.
+- Denied/unavailable detection keeps manual location and zone input usable.
 - User can choose sun exposure.
 - User can select from broad garden-space options including standard back garden/in-ground/raised bed choices.
 - Flow does not include a “what's already growing” / starter plants step.
@@ -20,4 +23,4 @@
 - Storage errors have user-visible copy and retry path.
 - The implementation does not break current demo/sample data.
 - TypeScript typecheck passes.
-- Jest tests cover route decision, validation, persistence, no-skip behavior, and garden-space options.
+- Jest tests cover route decision, validation, persistence, no-skip behavior, garden-space options, and location detection helpers.

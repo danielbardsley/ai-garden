@@ -36,7 +36,11 @@ describe('GardenSetupRepository', () => {
       name: '  Kitchen Garden  ',
       glyph: 'Kg',
       locationLabel: '  Philadelphia  ',
+      locationSource: 'detected',
+      latitude: 40.7,
+      longitude: -73.9,
       hardinessZone: '7b',
+      hardinessZoneSource: 'detected',
       sunExposure: 'full',
       growingSpaces: ['raised-beds', 'containers'],
     });
@@ -44,6 +48,9 @@ describe('GardenSetupRepository', () => {
     expect(saved.name).toBe('Kitchen Garden');
     expect(saved.locationLabel).toBe('Philadelphia');
     expect(saved.growingSpaces).toEqual(['raised-beds', 'containers']);
+    expect(saved.locationSource).toBe('detected');
+    expect(saved.latitude).toBe(40.7);
+    expect(saved.hardinessZoneSource).toBe('detected');
     expect(runAsync).toHaveBeenCalledWith(
       'INSERT OR REPLACE INTO app_settings (key, value_json, updated_at) VALUES (?, ?, ?);',
       [GARDEN_SETUP_SETTING_KEY, expect.stringContaining('Kitchen Garden'), '2026-05-11T17:00:00.000Z']

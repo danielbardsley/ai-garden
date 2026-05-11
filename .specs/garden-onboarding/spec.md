@@ -100,13 +100,16 @@ Purpose: collect coarse location and growing conditions for weather/AI/reminder 
 Fields:
 
 - City/postcode/location label, required as plain text.
-- Hardiness zone, optional/selectable. Reuse current USDA-zone language in v1, but label as editable/manual and allow “Not sure”.
+- Automatic current-location detection using the existing `LocationPermissionService` when the user taps “Use current location”.
+- Automatic USDA zone estimate using the existing `ZoneService` when coordinates are available and a US zone can be estimated.
+- Hardiness zone remains editable/manual and allows “Not sure” when detection is denied, unavailable, outside USDA coverage, or inaccurate.
 - Daily sun/exposure: Mostly shade, Partial sun, Full sun.
 
 Notes:
 
-- Current weather module already estimates zone from weather data. This onboarding spec should not require implementing a new authoritative zone lookup.
-- A future implementation can add use-current-location permission, but v1 can use manual entry only unless existing location services make this trivial.
+- Location permission should be requested only after explicit user intent, not on screen load.
+- Reverse geocoding should produce a friendly location label when available; otherwise use a coarse coordinate label.
+- Zone detection is best-effort and should be clearly labeled as estimated.
 
 ### 4. Garden setup
 
@@ -158,7 +161,11 @@ export type GardenSetup = {
   name: string;
   glyph?: string | null;
   locationLabel: string;
+  locationSource?: 'manual' | 'detected' | null;
+  latitude?: number | null;
+  longitude?: number | null;
   hardinessZone?: string | null;
+  hardinessZoneSource?: 'manual' | 'detected' | null;
   sunExposure?: 'shade' | 'partial' | 'full' | null;
   growingSpaces: string[];
   createdAt: string;
@@ -188,6 +195,7 @@ Sample/demo data policy:
 
 - Loading persisted setup: show calm loading copy rather than flashing home/onboarding.
 - Storage failure: allow retry and show a clear local-storage error.
+- Location denied/unavailable: keep manual location and zone controls usable and show calm inline copy.
 - User backs out mid-flow: preserve in-memory state during the current app session; persisted drafts are optional for v1. There is no production skip path.
 - Missing optional fields should render gracefully as “Not sure” or omitted recap rows.
 
@@ -208,6 +216,8 @@ Frontend tests should cover:
 - garden setup persistence request
 - no skip action is rendered
 - broad garden-space options include standard back-garden choices
+- automatic location success/denied/unavailable behavior
+- automatic zone estimate applied when available
 - no starter-plants/“what’s already growing” step is present
 
 Backend tests are not expected unless API/backend changes become necessary.
