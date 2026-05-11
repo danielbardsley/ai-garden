@@ -38,5 +38,5 @@
 - [x] The widget can use a saved garden setup zone before location-derived fallback.
 - [x] Unknown coordinates return `zone unknown` instead of a misleading guessed USDA zone.
 
-- [x] Existing local setup records with stale Jersey City `9b` display as USDA zone 7b.
+- [x] Existing local setup records are displayed as saved; no weather-widget 9a/9b-to-7b remapping is applied.
 - [x] A known setup/curated zone can render before live weather finishes loading.

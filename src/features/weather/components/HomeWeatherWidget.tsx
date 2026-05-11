@@ -7,12 +7,12 @@ import { GardenZone } from '../models/GardenZone';
 import { WeatherWidgetState } from '../models/WeatherWidgetState';
 import { WeatherWidgetService } from '../services/WeatherWidgetService';
 import { gardenWeekLabel } from '../viewModels/gardenWeekLabel';
-import { resolveSetupZone } from '../viewModels/setupZone';
+import { setupZoneValue } from '../viewModels/setupZone';
 import { weatherWidgetCopy } from '../viewModels/weatherWidgetCopy';
 
-export function HomeWeatherWidget({ gardenCreatedAt, setupZone, setupCoordinates }: { gardenCreatedAt?: string | null; setupZone?: string | null; setupCoordinates?: { latitude?: number | null; longitude?: number | null } | null } = {}) {
+export function HomeWeatherWidget({ gardenCreatedAt, setupZone }: { gardenCreatedAt?: string | null; setupZone?: string | null } = {}) {
   const service = useMemo(() => new WeatherWidgetService(), []);
-  const resolvedSetupZone = resolveSetupZone(setupZone, setupCoordinates);
+  const resolvedSetupZone = setupZoneValue(setupZone);
   const [state, setState] = useState<WeatherWidgetState>({ status: 'loading' });
 
   useEffect(() => {

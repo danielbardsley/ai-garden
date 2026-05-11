@@ -59,5 +59,5 @@
 - [x] Prefer garden setup hardiness zone before location-derived widget zone when available.
 - [x] Add regression tests for Jersey City zone and unknown fallback.
 
-- [x] Handle stale saved detected 9b setup values near Jersey City by resolving to 7b.
+- [x] Remove display-time 9a/9b-to-7b remapping; setup should save the correct zone instead.
 - [x] Show setup/curated zone copy immediately during weather loading when available.

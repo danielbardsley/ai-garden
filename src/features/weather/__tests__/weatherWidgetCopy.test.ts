@@ -70,18 +70,15 @@ describe('weather widget garden week label', () => {
   });
 });
 
-import { resolveSetupZone } from '../viewModels/setupZone';
+import { setupZoneValue } from '../viewModels/setupZone';
 
 describe('weather widget setup zone resolution', () => {
-  it('overrides stale detected 9b setup zones near Jersey City', () => {
-    expect(resolveSetupZone('9b', { latitude: 40.7178, longitude: -74.0431 })).toMatchObject({
-      label: 'USDA zone 7b',
-      source: 'curated-coordinate-lookup',
+  it('uses the saved setup zone without display-time remapping', () => {
+    expect(setupZoneValue('9b')).toMatchObject({
+      label: 'USDA zone 9b',
+      source: 'setup',
     });
-  });
-
-  it('keeps manually saved non-stale setup zones', () => {
-    expect(resolveSetupZone('7b', { latitude: 40.7178, longitude: -74.0431 })).toMatchObject({
+    expect(setupZoneValue('7b')).toMatchObject({
       label: 'USDA zone 7b',
       source: 'setup',
     });
