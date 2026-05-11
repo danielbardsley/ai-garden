@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { PhotoRecord } from '../../garden-records/models/GardenRecordTypes';
+import { galleryPhotoContextLabel } from '../galleryMetadata';
 import { fmtDate, plantSwatch } from '../../garden-records/viewModels';
 import { useGalleryRecords, usePhotoTags } from '../../garden-records/hooks/useGardenRecords';
 import { BottomNav } from '../components/BottomNav';
@@ -91,7 +92,7 @@ function PhotoLightbox({ photo, onClose }: { photo: PhotoRecord | null; onClose:
           <IconButton label="Close photo" onPress={onClose} dark theme={theme}><GlyphIcon name="close" color="#fff" /></IconButton>
           <View style={{ alignItems: 'center' }}>
             <Text style={{ color: 'rgba(255,255,255,0.72)', fontSize: 11, letterSpacing: 0.5 }}>{fmtDate(photo.capturedOn ?? '2026-05-07', { year: true }).toUpperCase()}</Text>
-            <Text style={{ color: '#fff', fontSize: 14, marginTop: 2 }}>{photo.plantId}</Text>
+            <Text style={{ color: '#fff', fontSize: 14, marginTop: 2 }}>{galleryPhotoContextLabel(photo, visibleTags.length)}</Text>
           </View>
           <View style={{ width: 40 }} />
         </View>
