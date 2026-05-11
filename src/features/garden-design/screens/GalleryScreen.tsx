@@ -52,7 +52,7 @@ export function GalleryScreen() {
             <View style={{ paddingHorizontal: 20, flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
               {groups[key].items.map((photo) => (
                 <Pressable key={photo.id} onPress={() => setLightbox(photo)} style={{ width: '32%', aspectRatio: 1, borderRadius: 11, overflow: 'hidden' }}>
-                  <PhotoTreatment tone={photo.tone ?? undefined} glyph={photo.plantGlyph ?? undefined} imageUri={photo.localUri} style={{ flex: 1 }} radius={11} />
+                  <PhotoTreatment tone={photo.tone ?? undefined} imageUri={photo.localUri} style={{ flex: 1 }} radius={11} />
                   <View style={{ position: 'absolute', top: 5, left: 5, borderRadius: 999, backgroundColor: 'rgba(0,0,0,0.42)', paddingHorizontal: 6, paddingVertical: 2 }}>
                     <Text style={{ color: '#fff', fontSize: 9 }}>{fmtDate(photo.capturedOn ?? '2026-05-07', { short: true })}</Text>
                   </View>
@@ -96,7 +96,7 @@ function PhotoLightbox({ photo, onClose }: { photo: PhotoRecord | null; onClose:
           <View style={{ width: 40 }} />
         </View>
         <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 18 }}>
-          <PhotoTreatment tone={photo.tone ?? undefined} glyph={photo.plantGlyph ?? undefined} imageUri={photo.localUri} style={{ width: '100%', aspectRatio: 1 / 1.18 }} radius={18} />
+          <PhotoTreatment tone={photo.tone ?? undefined} imageUri={photo.localUri} style={{ width: '100%', aspectRatio: 1 / 1.18 }} radius={18} />
         </View>
         <View style={{ margin: 16, marginBottom: 28, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.10)', padding: 16 }}>
           <Text style={{ color: '#fff', fontSize: 14, lineHeight: 20, marginBottom: 12 }}>{photo.note}</Text>

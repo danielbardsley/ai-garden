@@ -346,7 +346,7 @@ function IdentifiedBubble({ plants, selectedPlant, selectedPlantId, onPlant, add
   return (
     <View style={{ position: 'absolute', left: 18, right: 18, bottom: 24, borderRadius: 24, backgroundColor: cardBg, padding: 18, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 18, shadowOffset: { width: 0, height: 8 }, elevation: 6 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-        <PhotoTreatment tone={swatch[0]} glyph={previewPlant?.glyph ?? undefined} style={{ width: 58, height: 58 }} radius={15} />
+        <PhotoTreatment tone={swatch[0]} style={{ width: 58, height: 58 }} radius={15} />
         <View style={{ flex: 1 }}>
           <Text style={{ color: inkMuted, fontSize: 11, fontWeight: '800', letterSpacing: 1.1, textTransform: 'uppercase' }}>{analysisFailed ? diagnosticTitle : addToInventory ? 'Add to inventory' : hasConfidentMatch && isAiSuggestion ? 'AI suggested' : 'Choose plant'}</Text>
           <SerifText style={{ color: inkStrong, fontSize: 28, lineHeight: 33, fontStyle: 'italic' }}>{title}</SerifText>

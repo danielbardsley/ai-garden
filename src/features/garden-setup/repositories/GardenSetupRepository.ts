@@ -38,7 +38,6 @@ export class GardenSetupRepository {
     const setup: GardenSetup = {
       id: existing?.id ?? createId(),
       name: input.name.trim(),
-      glyph: input.glyph ?? null,
       locationLabel: input.locationLabel.trim(),
       locationSource: input.locationSource ?? 'manual',
       latitude: input.latitude ?? null,

@@ -49,7 +49,7 @@ export function HomeScreen({ gardenSetup, justOnboarded = false }: { gardenSetup
                 const swatch = plantSwatch(plant);
                 return (
                   <Pressable key={plant.id} onPress={() => router.push(`/plants/${plant.id}`)} style={{ backgroundColor: theme.surface, borderRadius: 15, borderWidth: 0.5, borderColor: theme.line, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                    <PhotoTreatment tone={swatch[0]} glyph={plant.glyph ?? undefined} style={{ width: 40, height: 40 }} radius={11} />
+                    <PhotoTreatment tone={swatch[0]} style={{ width: 40, height: 40 }} radius={11} />
                     <View style={{ flex: 1 }}>
                       <Text style={{ color: theme.ink, fontSize: 14, fontWeight: '600' }}>{plant.nextActionLabel} · <Text style={{ color: theme.inkSoft, fontWeight: '400' }}>{plant.commonName}</Text></Text>
                       <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 3 }}>
@@ -73,7 +73,7 @@ export function HomeScreen({ gardenSetup, justOnboarded = false }: { gardenSetup
             return (
               <Pressable key={plant.id} onPress={() => router.push(`/plants/${plant.id}`)} style={{ width: '48%', marginBottom: 10 }}>
                 <View style={{ aspectRatio: 1 / 1.15, borderRadius: 16, overflow: 'hidden', borderWidth: 0.5, borderColor: theme.line }}>
-                  <PhotoTreatment tone={latest?.tone ?? swatch[0]} glyph={plant.glyph ?? undefined} imageUri={latest?.localUri} style={{ flex: 1 }} />
+                  <PhotoTreatment tone={latest?.tone ?? swatch[0]} imageUri={latest?.localUri} style={{ flex: 1 }} />
                   <View style={{ position: 'absolute', top: 8, left: 8, borderRadius: 999, backgroundColor: theme.name === 'Forest' ? 'rgba(31,42,35,0.82)' : 'rgba(255,255,255,0.86)', paddingVertical: 4, paddingHorizontal: 8, flexDirection: 'row', alignItems: 'center' }}>
                     <StatusDot kind={plant.statusKind === 'archived' ? 'idle' : plant.statusKind} theme={theme} />
                     <Text style={{ color: theme.ink, fontSize: 10, fontWeight: '600' }}>{plant.statusLabel}</Text>

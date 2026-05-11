@@ -5,7 +5,6 @@ export type HardinessZoneSource = 'manual' | 'detected';
 export type GardenSetup = {
   id: string;
   name: string;
-  glyph?: string | null;
   locationLabel: string;
   locationSource?: LocationSource | null;
   latitude?: number | null;
@@ -20,7 +19,6 @@ export type GardenSetup = {
 
 export type SaveGardenSetupInput = {
   name: string;
-  glyph?: string | null;
   locationLabel: string;
   locationSource?: LocationSource | null;
   latitude?: number | null;

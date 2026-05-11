@@ -34,7 +34,6 @@ describe('GardenSetupRepository', () => {
 
     const saved = await new GardenSetupRepository().saveSetup({
       name: '  Kitchen Garden  ',
-      glyph: 'Kg',
       locationLabel: '  Philadelphia  ',
       locationSource: 'detected',
       latitude: 40.7,

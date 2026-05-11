@@ -49,7 +49,7 @@ export function PlantDetailScreen() {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 12 : 0} style={{ flex: 1 }}>
       <ScrollView keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets contentContainerStyle={{ paddingBottom: tab === 'chat' ? 220 : 124 }}>
         <View style={{ width: '100%', aspectRatio: 1 / 1.04 }}>
-          <PhotoTreatment tone={latest?.tone ?? plant.primaryColor ?? undefined} glyph={plant.glyph ?? undefined} imageUri={latest?.localUri} style={{ flex: 1, borderRadius: 0 }} radius={0} />
+          <PhotoTreatment tone={latest?.tone ?? plant.primaryColor ?? undefined} imageUri={latest?.localUri} style={{ flex: 1, borderRadius: 0 }} radius={0} />
           <View style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: 'rgba(0,0,0,0.12)' }} />
           <View style={{ position: 'absolute', top: 54, left: 16, right: 16, flexDirection: 'row', justifyContent: 'space-between' }}>
             <IconButton label="Back" onPress={() => router.push('/')} theme={theme}><GlyphIcon name="back" color={theme.ink} size={28} /></IconButton>
@@ -90,7 +90,7 @@ export function PlantDetailScreen() {
           ))}
         </View>
 
-        {tab === 'timeline' ? <Timeline observations={observations} photos={photos} aiInsights={aiInsights} glyph={plant.glyph ?? ''} onCamera={() => router.push(`/camera?plantId=${plant.id}`)} /> : null}
+        {tab === 'timeline' ? <Timeline observations={observations} photos={photos} aiInsights={aiInsights} onCamera={() => router.push(`/camera?plantId=${plant.id}`)} /> : null}
         {tab === 'chat' ? <PlantChat detail={detail} /> : null}
         {tab === 'care' ? <CareSection plant={plant} events={careEvents} recommendations={careRecommendations} careProfile={careProfile ?? null} aiInsights={aiInsights} detail={detail} onCareLogged={reload} /> : null}
       </ScrollView>
@@ -126,7 +126,7 @@ function Stat({ value, label }: { value: string; label: string }) {
   return <View style={{ flex: 1 }}><SerifText style={{ fontSize: 19, color: theme.ink }}>{value}</SerifText><Text style={{ color: theme.inkMuted, fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, marginTop: 3 }}>{label}</Text></View>;
 }
 
-function Timeline({ observations, photos, aiInsights, glyph, onCamera }: { observations: ObservationRecord[]; photos: PhotoRecord[]; aiInsights: AiInsightRecord[]; glyph: string; onCamera: () => void }) {
+function Timeline({ observations, photos, aiInsights, onCamera }: { observations: ObservationRecord[]; photos: PhotoRecord[]; aiInsights: AiInsightRecord[]; onCamera: () => void }) {
   const photoByObservation = new Map(photos.map((photo) => [photo.observationId, photo]));
   const insightByObservation = new Map(aiInsights.map((insight) => [insight.observationId, insight]));
   const byYear = observations.reduce<Record<string, ObservationRecord[]>>((acc, observation) => {
@@ -152,7 +152,7 @@ function Timeline({ observations, photos, aiInsights, glyph, onCamera }: { obser
             const insight = insightByObservation.get(observation.id);
             return (
               <View key={observation.id} style={{ flexDirection: 'row', gap: 14, marginBottom: 12 }}>
-                <PhotoTreatment tone={photo?.tone ?? undefined} glyph={glyph} imageUri={photo?.localUri} style={{ width: 78, height: 78 }} radius={14} />
+                <PhotoTreatment tone={photo?.tone ?? undefined} imageUri={photo?.localUri} style={{ width: 78, height: 78 }} radius={14} />
                 <View style={{ flex: 1, paddingTop: 4 }}>
                   <MonoText style={{ fontSize: 11, color: theme.inkMuted }}>{fmtDate(observation.observedOn, { short: true }).toUpperCase()} · {relDays(observation.observedOn)}</MonoText>
                   <Text style={{ color: theme.ink, fontSize: 14, lineHeight: 20, marginTop: 4 }}>{observation.note}</Text>

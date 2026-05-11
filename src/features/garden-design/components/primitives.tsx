@@ -34,14 +34,12 @@ export function ScreenScaffold({ children, bottomInset = 96, theme = defaultThem
 
 export function PhotoTreatment({
   tone = '#7da259',
-  glyph,
   date,
   imageUri,
   style,
   radius = 16,
 }: {
   tone?: string;
-  glyph?: string;
   date?: string;
   imageUri?: string | null;
   style?: StyleProp<ViewStyle>;
@@ -92,12 +90,11 @@ export function PhotoTreatment({
           />
         </>
       )}
-      {(glyph || date) && (
+      {date ? (
         <View style={{ position: 'absolute', left: 9, right: 9, bottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-          {date ? <MonoText style={{ color: 'rgba(255,255,255,0.94)', fontSize: 10 }}>{date}</MonoText> : <View />}
-          {glyph ? <SerifText style={{ color: 'rgba(255,255,255,0.86)', fontSize: 14, fontStyle: 'italic' }}>{glyph}</SerifText> : null}
+          <MonoText style={{ color: 'rgba(255,255,255,0.94)', fontSize: 10 }}>{date}</MonoText>
         </View>
-      )}
+      ) : null}
     </View>
   );
 }
