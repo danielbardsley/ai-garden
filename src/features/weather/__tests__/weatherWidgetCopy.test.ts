@@ -69,3 +69,21 @@ describe('weather widget garden week label', () => {
     expect(gardenWeekLabel('not-a-date', new Date('2026-01-08T00:00:00Z'))).toBe('week 2');
   });
 });
+
+import { resolveSetupZone } from '../viewModels/setupZone';
+
+describe('weather widget setup zone resolution', () => {
+  it('overrides stale detected 9b setup zones near Jersey City', () => {
+    expect(resolveSetupZone('9b', { latitude: 40.7178, longitude: -74.0431 })).toMatchObject({
+      label: 'USDA zone 7b',
+      source: 'curated-coordinate-lookup',
+    });
+  });
+
+  it('keeps manually saved non-stale setup zones', () => {
+    expect(resolveSetupZone('7b', { latitude: 40.7178, longitude: -74.0431 })).toMatchObject({
+      label: 'USDA zone 7b',
+      source: 'setup',
+    });
+  });
+});

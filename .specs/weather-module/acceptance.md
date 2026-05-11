@@ -37,3 +37,6 @@
 - [x] Recent weather minimums are not used to infer hardiness zone in the widget.
 - [x] The widget can use a saved garden setup zone before location-derived fallback.
 - [x] Unknown coordinates return `zone unknown` instead of a misleading guessed USDA zone.
+
+- [x] Existing local setup records with stale Jersey City `9b` display as USDA zone 7b.
+- [x] A known setup/curated zone can render before live weather finishes loading.

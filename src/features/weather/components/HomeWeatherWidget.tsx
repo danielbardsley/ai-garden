@@ -7,10 +7,12 @@ import { GardenZone } from '../models/GardenZone';
 import { WeatherWidgetState } from '../models/WeatherWidgetState';
 import { WeatherWidgetService } from '../services/WeatherWidgetService';
 import { gardenWeekLabel } from '../viewModels/gardenWeekLabel';
+import { resolveSetupZone } from '../viewModels/setupZone';
 import { weatherWidgetCopy } from '../viewModels/weatherWidgetCopy';
 
-export function HomeWeatherWidget({ gardenCreatedAt, setupZone }: { gardenCreatedAt?: string | null; setupZone?: string | null } = {}) {
+export function HomeWeatherWidget({ gardenCreatedAt, setupZone, setupCoordinates }: { gardenCreatedAt?: string | null; setupZone?: string | null; setupCoordinates?: { latitude?: number | null; longitude?: number | null } | null } = {}) {
   const service = useMemo(() => new WeatherWidgetService(), []);
+  const resolvedSetupZone = resolveSetupZone(setupZone, setupCoordinates);
   const [state, setState] = useState<WeatherWidgetState>({ status: 'loading' });
 
   useEffect(() => {
@@ -23,7 +25,7 @@ export function HomeWeatherWidget({ gardenCreatedAt, setupZone }: { gardenCreate
     };
   }, [service]);
 
-  const copy = weatherWidgetCopy(applySetupZone(state, setupZone));
+  const copy = weatherWidgetCopy(state.status === 'loading' && resolvedSetupZone ? { status: 'ready', data: { zone: resolvedSetupZone, cached: false, fetchedAt: new Date().toISOString() } } : applySetupZone(state, resolvedSetupZone));
 
   return (
     <View style={{ marginHorizontal: 20, marginBottom: 24, padding: 15, backgroundColor: theme.surface, borderRadius: 18, borderWidth: 0.5, borderColor: theme.line, flexDirection: 'row', alignItems: 'center', gap: 13 }}>
@@ -39,16 +41,8 @@ export function HomeWeatherWidget({ gardenCreatedAt, setupZone }: { gardenCreate
   );
 }
 
-export function applySetupZone(state: WeatherWidgetState, setupZone?: string | null): WeatherWidgetState {
-  const trimmedZone = setupZone?.trim();
-  if (!trimmedZone || state.status !== 'ready' || !state.data) return state;
-  const zone: GardenZone = {
-    type: 'USDA',
-    value: trimmedZone,
-    label: `USDA zone ${trimmedZone}`,
-    source: 'setup',
-    confidence: 'estimated',
-  };
+export function applySetupZone(state: WeatherWidgetState, zone?: GardenZone): WeatherWidgetState {
+  if (!zone || state.status !== 'ready' || !state.data) return state;
   return {
     ...state,
     data: {

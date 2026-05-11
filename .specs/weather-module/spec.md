@@ -227,3 +227,6 @@ Requirements:
 - For Jersey City / nearby NYC metro coordinates, return USDA zone 7b rather than a recent-temperature estimate.
 - Keep the widget graceful: if an authoritative or curated lookup cannot resolve a coordinate, return `zone unknown` rather than guessing from recent weather.
 - Mark non-authoritative zone results with an appropriate source/confidence.
+
+- If saved setup data contains a stale detected warm-zone value for Jersey City / nearby NYC metro, override it to USDA zone 7b instead of echoing the stale value.
+- The widget should display a known setup/curated zone immediately while weather is still loading, avoiding a slow-looking full widget load when only current weather is pending.
