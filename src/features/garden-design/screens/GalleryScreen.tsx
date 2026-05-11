@@ -105,7 +105,7 @@ function PhotoLightbox({ photo, onClose }: { photo: PhotoRecord | null; onClose:
             <Text style={{ color: 'rgba(255,255,255,0.72)', fontSize: 10, textTransform: 'uppercase', letterSpacing: 1.1 }}>AI auto-tags</Text>
           </View>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-            {visibleTags.length > 0 ? visibleTags.map((tag) => <Text key={tag.id} style={{ color: '#fff', fontSize: 12, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, backgroundColor: tag.source === 'ai' ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.12)' }}>{tag.tag}</Text>) : <Text style={{ color: 'rgba(255,255,255,0.64)', fontSize: 12 }}>AI tags will appear after categorization.</Text>}
+            {visibleTags.length > 0 ? visibleTags.map((tag) => <Text key={tag.id} style={{ color: '#fff', fontSize: 12, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, backgroundColor: tag.source === 'ai' ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.12)' }}>{tag.tag}</Text>) : <Text style={{ color: 'rgba(255,255,255,0.64)', fontSize: 12 }}>No tags saved for this photo yet.</Text>}
           </View>
           {photo.plantId ? (
             <Pressable onPress={() => { onClose(); router.push(`/plants/${photo.plantId}`); }} style={{ marginTop: 12 }}>

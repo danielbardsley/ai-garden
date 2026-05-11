@@ -1,6 +1,6 @@
-# Garden Roof Deck
+# Garden Roof Deck / AI Garden
 
-Expo React Native bootstrap for tracking what Dan grows in his garden / roof deck over multiple years.
+Expo React Native app for tracking what Dan grows in his garden / roof deck over multiple years, with local-first garden records and AI-assisted photo/care workflows.
 
 Managed by OpenClaw App Platform.
 
@@ -11,15 +11,21 @@ Managed by OpenClaw App Platform.
 
 ## Current scope
 
-This repository is intentionally in bootstrap form. Visual design and theme are deferred to the next spec.
+The app now includes:
 
-The scaffold anticipates future modules for:
+- local SQLite plant, observation, photo, care, recommendation, and AI conversation records
+- mobile camera capture through Expo Go with local photo saves
+- AI photo identification/categorization plumbing through the FastAPI backend
+- plant-scoped Ask AI chat
+- AI-assisted care profiles and care recommendations
+- weather/zone context for the home screen
+- Expo web static export for hosted preview paths
 
-- plant records by season/year and location/container
-- image gallery capture/import
-- camera and media permission flows
-- AI-assisted plant photo labeling
-- AI plant-care Q&A
+Still intentionally deferred:
+
+- photo-library import / media picker flows
+- reminders and user profile screens
+- cloud sync and multi-device conflict handling
 
 ## Scripts
 
@@ -30,14 +36,22 @@ npm run web
 npm run build:web
 npm run smoke:web
 npm run typecheck
+npm test -- --runInBand
 ```
 
-## Future hosting paths
+Backend tests:
+
+```bash
+cd backend
+python -m pytest -q
+```
+
+## Hosting paths
 
 Expo web should remain compatible with path-prefix hosting:
 
 - frontend: `/apps/garden-roof-deck/`
-- API, if used: `/api/garden-roof-deck/`
+- API: `/api/garden-roof-deck/`
 
 ## Runtime + AI plumbing
 
