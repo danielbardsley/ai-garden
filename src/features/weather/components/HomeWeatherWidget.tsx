@@ -5,9 +5,10 @@ import { GlyphIcon, SerifText } from '../../garden-design/components/primitives'
 import { theme } from '../../garden-design/theme';
 import { WeatherWidgetState } from '../models/WeatherWidgetState';
 import { WeatherWidgetService } from '../services/WeatherWidgetService';
+import { gardenWeekLabel } from '../viewModels/gardenWeekLabel';
 import { weatherWidgetCopy } from '../viewModels/weatherWidgetCopy';
 
-export function HomeWeatherWidget() {
+export function HomeWeatherWidget({ gardenCreatedAt }: { gardenCreatedAt?: string | null } = {}) {
   const service = useMemo(() => new WeatherWidgetService(), []);
   const [state, setState] = useState<WeatherWidgetState>({ status: 'loading' });
 
@@ -32,13 +33,7 @@ export function HomeWeatherWidget() {
         <Text style={{ color: theme.ink, fontSize: 15, fontWeight: '600' }}>{copy.primaryLine}</Text>
         <Text style={{ color: theme.inkSoft, fontSize: 12, marginTop: 2 }}>{copy.secondaryLine}</Text>
       </View>
-      <SerifText style={{ color: theme.inkSoft, fontSize: 14, fontStyle: 'italic' }}>{currentSeasonWeekLabel()}</SerifText>
+      <SerifText style={{ color: theme.inkSoft, fontSize: 14, fontStyle: 'italic' }}>{gardenWeekLabel(gardenCreatedAt)}</SerifText>
     </View>
   );
-}
-
-export function currentSeasonWeekLabel(date = new Date()): string {
-  const start = new Date(date.getFullYear(), 0, 1);
-  const dayOfYear = Math.floor((date.getTime() - start.getTime()) / 86400000) + 1;
-  return `week ${Math.ceil(dayOfYear / 7)}`;
 }

@@ -2,6 +2,7 @@
 
 ## Accepted
 
+- The right-side `week N` marker should represent weeks since local garden setup creation; calendar week is only a fallback when no setup timestamp exists.
 - The existing static Home screen weather row will become the live widget.
 - The widget must stay exactly simple: same placement, compact card, two text lines, and right-side `week N` marker.
 - There will be no dedicated Weather screen in this slice.

@@ -23,6 +23,8 @@
 
 - [x] Extract existing static row into `HomeWeatherWidget`.
 - [x] Preserve existing compact card layout, icon block, two text lines, and `week N` marker.
+- [x] Update `week N` marker to count from garden setup creation date.
+- [x] Pass garden setup creation timestamp from Home into weather widget.
 - [x] Replace hard-coded `62°F · partly sun` with live current weather.
 - [x] Replace hard-coded `Last frost 22 days ago · zone 7a` with concise live garden context plus resolved zone.
 - [x] Add loading, permission denied, and unavailable copy without adding extra rows. Cached fallback remains deferred.
@@ -39,6 +41,7 @@
 
 - [x] `npm run typecheck`
 - [x] `npm test -- --runInBand`
+- [x] Add/adjust week-label tests for garden age.
 - [x] `npm run build:web && npm run smoke:web`
 - [ ] Backend tests, if backend endpoints are added.
 - [ ] Manual Expo Go check of location permission and exact simple widget rendering.

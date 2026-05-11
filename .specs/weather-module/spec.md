@@ -32,6 +32,7 @@ The implementation should preserve this placement, row shape, spacing, icon trea
 - Use the device location, with permission, to fetch weather and determine zone.
 - Use a free weather API; prefer Open-Meteo for current weather because it does not require an API key.
 - Keep the widget exactly simple: one compact card, two main text lines, existing right-side `week N` marker.
+- The right-side `week N` marker counts weeks since the local garden setup was created, not calendar/season week.
 - Keep failures graceful and quiet so Home still feels polished.
 - Do not persist precise latitude/longitude by default.
 
@@ -54,7 +55,7 @@ The widget remains a single compact card with:
 
 1. left icon block,
 2. middle text block,
-3. right seasonal week marker.
+3. right garden-age week marker.
 
 The text block remains two lines:
 
@@ -107,10 +108,11 @@ Rules:
 
 ### Right marker
 
-The right-side seasonal marker remains visually equivalent to today’s `week 19`.
+The right-side marker remains visually equivalent to today’s `week 19`, but its number is the local garden age in weeks.
 
 - It may remain as-is for the first implementation.
-- If derived dynamically, it should still render as `week N` and must not increase widget complexity.
+- It should render as `week N`, where week 1 covers days 0–6 after setup creation and increments every 7 days.
+- If no garden setup creation timestamp is available, fall back to calendar week behavior so the widget remains non-blocking.
 
 ## Location and permission behavior
 

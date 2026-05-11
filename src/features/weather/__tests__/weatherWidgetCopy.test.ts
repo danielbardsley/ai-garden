@@ -1,6 +1,7 @@
 import { CurrentWeather } from '../models/CurrentWeather';
 import { GardenZone } from '../models/GardenZone';
 import { WeatherWidgetState } from '../models/WeatherWidgetState';
+import { gardenWeekLabel } from '../viewModels/gardenWeekLabel';
 import { formatPrimaryLine, formatSecondaryLine, gardenSignalLabel, weatherConditionLabel, weatherWidgetCopy } from '../viewModels/weatherWidgetCopy';
 
 const weather = (overrides: Partial<CurrentWeather> = {}): CurrentWeather => ({
@@ -49,5 +50,22 @@ describe('weather widget copy', () => {
     expect(weatherConditionLabel(0, true)).toBe('clear sun');
     expect(weatherConditionLabel(61, true)).toBe('light rain');
     expect(weatherConditionLabel(95, true)).toBe('storm');
+  });
+});
+
+
+describe('weather widget garden week label', () => {
+  it('counts week 1 for the first seven days after garden setup', () => {
+    expect(gardenWeekLabel('2026-05-01T12:00:00Z', new Date('2026-05-07T11:59:59Z'))).toBe('week 1');
+  });
+
+  it('increments every seven days after garden setup', () => {
+    expect(gardenWeekLabel('2026-05-01T12:00:00Z', new Date('2026-05-08T12:00:00Z'))).toBe('week 2');
+    expect(gardenWeekLabel('2026-05-01T12:00:00Z', new Date('2026-05-22T12:00:00Z'))).toBe('week 4');
+  });
+
+  it('falls back to calendar week without a valid setup date', () => {
+    expect(gardenWeekLabel(null, new Date('2026-01-08T00:00:00Z'))).toBe('week 2');
+    expect(gardenWeekLabel('not-a-date', new Date('2026-01-08T00:00:00Z'))).toBe('week 2');
   });
 });
