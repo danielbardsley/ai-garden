@@ -3,10 +3,11 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { useHomeGardenRecords } from '../../garden-records/hooks/useGardenRecords';
 import { GardenSetup } from '../../garden-setup/models/GardenSetup';
-import { latestPhotoForPlant, plantSwatch, relDays } from '../../garden-records/viewModels';
+import { latestPhotoForPlant, plantSwatch } from '../../garden-records/viewModels';
+import { plantCardSubheader } from '../plantCardMetadata';
 import { HomeWeatherWidget } from '../../weather/components/HomeWeatherWidget';
 import { BottomNav } from '../components/BottomNav';
-import { MonoText, PhotoTreatment, ScreenScaffold, SectionHeader, SerifText, StatusDot } from '../components/primitives';
+import { PhotoTreatment, ScreenScaffold, SectionHeader, SerifText, StatusDot } from '../components/primitives';
 import { theme } from '../theme';
 
 export function HomeScreen({ gardenSetup, justOnboarded = false }: { gardenSetup?: GardenSetup | null; justOnboarded?: boolean }) {
@@ -82,8 +83,7 @@ export function HomeScreen({ gardenSetup, justOnboarded = false }: { gardenSetup
                 <View style={{ paddingHorizontal: 4, paddingTop: 9 }}>
                   <SerifText style={{ color: theme.ink, fontSize: 18, fontWeight: '600' }}>{plant.displayName}</SerifText>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 3 }}>
-                    <Text style={{ color: theme.inkSoft, fontSize: 11 }}>{plant.commonName}</Text>
-                    <MonoText style={{ color: theme.inkMuted, fontSize: 10 }}>{relDays(latest?.capturedOn)}</MonoText>
+                    <Text style={{ color: theme.inkSoft, fontSize: 11 }}>{plantCardSubheader(plant, photos)}</Text>
                   </View>
                 </View>
               </Pressable>
