@@ -9,6 +9,7 @@ import { gardenAgentService } from '../../garden-agent/GardenAgentService';
 import { GardenAgentDiagnostics } from '../../garden-agent/GardenAgentDiagnostics';
 import { GardenAgentPhotoIdentificationOutput } from '../../garden-agent/types';
 import { cameraCaptureService } from '../../garden-records/services/CameraCaptureService';
+import { canAddPhotoIdentificationToInventory, isNonPlantIdentification } from '../cameraIdentificationGuards';
 import { plantSwatch } from '../../garden-records/viewModels';
 import { GlyphIcon, IconButton, PhotoTreatment, SerifText } from '../components/primitives';
 import { theme } from '../theme';
@@ -92,7 +93,7 @@ export function CameraScreen() {
         setAddToInventory(false);
       } else {
         setSelectedPlantId('');
-        setAddToInventory(Boolean(result.output.openIdentification));
+        setAddToInventory(canAddPhotoIdentificationToInventory(result.output));
       }
       setAnalysis(result);
       setDiagnostics(null);
@@ -328,8 +329,9 @@ function IdentifiedBubble({ plants, selectedPlant, selectedPlantId, onPlant, add
   const selectedPlantName = selectedPlant ? selectedPlant.commonName || selectedPlant.displayName : null;
   const visualName = cleanPlantTitle(analysis);
   const visualDetail = analysis?.output.openIdentification?.trim();
-  const canAddIdentifiedPlant = Boolean(visualName && !hasConfidentMatch);
-  const title = hasConfidentMatch && selectedPlantName ? selectedPlantName : visualName || selectedPlantName || 'Unknown plant';
+  const isNonPlant = isNonPlantIdentification(analysis?.output);
+  const canAddIdentifiedPlant = Boolean(visualName && !hasConfidentMatch && !isNonPlant);
+  const title = isNonPlant ? 'No plant visible' : hasConfidentMatch && selectedPlantName ? selectedPlantName : visualName || selectedPlantName || 'Unknown plant';
   const diagnosticMessage = diagnostics?.message ?? 'AI request failed; choose a plant to save locally.';
   const diagnosticTitle = diagnostics?.failureKind === 'api_unreachable' ? 'API unreachable' : diagnostics?.failureKind === 'agent_unconfigured' ? 'AI not configured' : 'AI unavailable';
   const cardBg = '#fff8ea';
@@ -348,7 +350,7 @@ function IdentifiedBubble({ plants, selectedPlant, selectedPlantId, onPlant, add
         <View style={{ flex: 1 }}>
           <Text style={{ color: inkMuted, fontSize: 11, fontWeight: '800', letterSpacing: 1.1, textTransform: 'uppercase' }}>{analysisFailed ? diagnosticTitle : addToInventory ? 'Add to inventory' : hasConfidentMatch && isAiSuggestion ? 'AI suggested' : 'Choose plant'}</Text>
           <SerifText style={{ color: inkStrong, fontSize: 28, lineHeight: 33, fontStyle: 'italic' }}>{title}</SerifText>
-          <Text style={{ color: inkBody, opacity: 1, fontSize: 12, lineHeight: 16 }}>{analysisFailed ? diagnosticMessage : addToInventory ? 'Create a new plant profile from this ID' : hasConfidentMatch ? `${confidenceLabel} · confirm or choose another` : 'No inventory match yet · add it or choose one'}</Text>
+          <Text style={{ color: inkBody, opacity: 1, fontSize: 12, lineHeight: 16 }}>{analysisFailed ? diagnosticMessage : isNonPlant ? 'Retake with a plant in frame, or choose an existing plant only if this photo belongs in its timeline.' : addToInventory ? 'Create a new plant profile from this ID' : hasConfidentMatch ? `${confidenceLabel} · confirm or choose another` : 'No inventory match yet · add it or choose one'}</Text>
         </View>
       </View>
 
