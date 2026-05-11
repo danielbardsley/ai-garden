@@ -12,4 +12,18 @@ describe('ZoneService', () => {
     const service = new ZoneService();
     expect(service.estimateUsdaZone(-80)).toBeUndefined();
   });
+
+  it('uses curated USDA zone lookup for Jersey City coordinates', async () => {
+    const service = new ZoneService();
+    await expect(service.getGardenZone({ latitude: 40.7178, longitude: -74.0431 })).resolves.toMatchObject({
+      label: 'USDA zone 7b',
+      source: 'curated-coordinate-lookup',
+    });
+  });
+
+  it('returns undefined instead of guessing from recent weather when no curated zone exists', async () => {
+    const service = new ZoneService();
+    await expect(service.getGardenZone({ latitude: 39.9526, longitude: -75.1652 })).resolves.toBeUndefined();
+  });
+
 });

@@ -51,3 +51,10 @@
 - [ ] Update acceptance results.
 - [x] Record final provider and zone lookup decisions in `decisions.md`.
 - [x] Add memory note after implementation or meaningful design decision.
+
+## Zone accuracy correction
+
+- [x] Remove recent-minimum-temperature based USDA zone guessing from live weather widget path.
+- [x] Add curated coordinate lookup for Jersey City / nearby NYC metro as USDA zone 7b.
+- [x] Prefer garden setup hardiness zone before location-derived widget zone when available.
+- [x] Add regression tests for Jersey City zone and unknown fallback.

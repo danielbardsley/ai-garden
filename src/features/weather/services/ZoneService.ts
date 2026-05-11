@@ -4,26 +4,7 @@ import { LocationCoordinates } from '../models/WeatherWidgetState';
 export class ZoneService {
   async getGardenZone(coordinates: LocationCoordinates): Promise<GardenZone | undefined> {
     if (!this.isLikelyUnitedStates(coordinates)) return undefined;
-
-    const params = new URLSearchParams({
-      latitude: String(coordinates.latitude),
-      longitude: String(coordinates.longitude),
-      daily: 'temperature_2m_min',
-      temperature_unit: 'fahrenheit',
-      timezone: 'auto',
-      past_days: '92',
-      forecast_days: '1',
-    });
-    const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params.toString()}`);
-    if (!response.ok) {
-      throw new Error(`Open-Meteo zone estimate request failed: ${response.status}`);
-    }
-    const data = await response.json();
-    const values = data?.daily?.temperature_2m_min;
-    if (!Array.isArray(values)) return undefined;
-    const numericValues = values.filter((value): value is number => typeof value === 'number');
-    if (numericValues.length === 0) return undefined;
-    return this.estimateUsdaZone(Math.min(...numericValues));
+    return this.lookupCuratedUsdaZone(coordinates);
   }
 
   estimateUsdaZone(extremeMinimumF: number): GardenZone | undefined {
@@ -66,8 +47,27 @@ export class ZoneService {
     };
   }
 
+  lookupCuratedUsdaZone(coordinates: LocationCoordinates): GardenZone | undefined {
+    if (isWithinRadiusMiles(coordinates, { latitude: 40.7178, longitude: -74.0431 }, 12)) {
+      return {
+        type: 'USDA',
+        value: '7b',
+        label: 'USDA zone 7b',
+        source: 'curated-coordinate-lookup',
+        confidence: 'estimated',
+      };
+    }
+    return undefined;
+  }
+
   private isLikelyUnitedStates(coordinates: LocationCoordinates): boolean {
     const { latitude, longitude } = coordinates;
     return latitude >= 18 && latitude <= 72 && longitude >= -180 && longitude <= -65;
   }
+}
+
+function isWithinRadiusMiles(coordinates: LocationCoordinates, center: LocationCoordinates, radiusMiles: number): boolean {
+  const latitudeMiles = (coordinates.latitude - center.latitude) * 69;
+  const longitudeMiles = (coordinates.longitude - center.longitude) * 69 * Math.cos((center.latitude * Math.PI) / 180);
+  return Math.sqrt(latitudeMiles ** 2 + longitudeMiles ** 2) <= radiusMiles;
 }

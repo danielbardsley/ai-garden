@@ -30,3 +30,10 @@
 - `npm run build:web && npm run smoke:web` passed.
 - Manual Expo Go location check remains pending.
 - Expo crash follow-up: added `expo-location` plugin/permission config and guarded async native import; validation still passes.
+
+## Zone accuracy correction acceptance
+
+- [x] Jersey City coordinates resolve to USDA zone 7b.
+- [x] Recent weather minimums are not used to infer hardiness zone in the widget.
+- [x] The widget can use a saved garden setup zone before location-derived fallback.
+- [x] Unknown coordinates return `zone unknown` instead of a misleading guessed USDA zone.

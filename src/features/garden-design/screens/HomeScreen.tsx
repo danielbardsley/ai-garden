@@ -39,7 +39,7 @@ export function HomeScreen({ gardenSetup, justOnboarded = false }: { gardenSetup
           ) : null}
         </View>
 
-        <HomeWeatherWidget gardenCreatedAt={gardenSetup?.createdAt} />
+        <HomeWeatherWidget gardenCreatedAt={gardenSetup?.createdAt} setupZone={gardenSetup?.hardinessZone} />
 
         {attentionPlants.length > 0 ? (
           <View style={{ marginBottom: 26 }}>

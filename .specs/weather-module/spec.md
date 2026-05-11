@@ -215,3 +215,15 @@ Minimum validation for implementation:
 - `npm run build:web && npm run smoke:web`
 - backend tests if backend endpoints are added,
 - manual Expo Go check for location permission and widget rendering.
+
+## Zone accuracy follow-up
+
+The initial frontend estimate used recent observed minimum temperatures from Open-Meteo. That is not equivalent to USDA hardiness zones, which are based on average annual extreme minimum winter temperature over long-term climate normals. This caused warm-season lookups such as Jersey City to display an incorrect zone such as USDA 9b.
+
+Requirements:
+
+- Do not derive USDA zones from the last ~90 days of weather observations.
+- For known/local setup locations, prefer the user-entered or detected setup zone when available.
+- For Jersey City / nearby NYC metro coordinates, return USDA zone 7b rather than a recent-temperature estimate.
+- Keep the widget graceful: if an authoritative or curated lookup cannot resolve a coordinate, return `zone unknown` rather than guessing from recent weather.
+- Mark non-authoritative zone results with an appropriate source/confidence.
