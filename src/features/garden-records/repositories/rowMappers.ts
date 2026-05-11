@@ -1,6 +1,9 @@
 import {
+  AiConversationMessageRecord,
   AiConversationRecord,
+  AiInsightRecord,
   CareEventRecord,
+  CareProfileRecord,
   CareRecommendationRecord,
   ObservationRecord,
   PhotoRecord,
@@ -174,6 +177,37 @@ export function mapCareRecommendation(row: CareRecommendationRow): CareRecommend
   };
 }
 
+
+type AiInsightRow = {
+  id: string;
+  plant_id?: string | null;
+  photo_id?: string | null;
+  observation_id?: string | null;
+  scope: AiInsightRecord['scope'];
+  kind: AiInsightRecord['kind'];
+  title?: string | null;
+  body: string;
+  status: AiInsightRecord['status'];
+  confidence?: number | null;
+  source_run_id?: string | null;
+};
+
+export function mapAiInsight(row: AiInsightRow): AiInsightRecord {
+  return {
+    id: row.id,
+    plantId: row.plant_id,
+    photoId: row.photo_id,
+    observationId: row.observation_id,
+    scope: row.scope,
+    kind: row.kind,
+    title: row.title,
+    body: row.body,
+    status: row.status,
+    confidence: row.confidence,
+    sourceRunId: row.source_run_id,
+  };
+}
+
 type ConversationRow = {
   id: string;
   plant_id?: string | null;
@@ -187,5 +221,71 @@ export function mapConversation(row: ConversationRow): AiConversationRecord {
     plantId: row.plant_id,
     title: row.title,
     scope: row.scope,
+  };
+}
+
+
+type ConversationMessageRow = {
+  id: string;
+  conversation_id: string;
+  plant_id?: string | null;
+  role: AiConversationMessageRecord['role'];
+  body: string;
+  status?: AiConversationMessageRecord['status'] | null;
+  source_run_id?: string | null;
+  metadata_json?: string | null;
+  created_at: string;
+};
+
+export function mapConversationMessage(row: ConversationMessageRow): AiConversationMessageRecord {
+  let metadata: Record<string, unknown> | null = null;
+  if (row.metadata_json) {
+    try { metadata = JSON.parse(row.metadata_json) as Record<string, unknown>; } catch { metadata = null; }
+  }
+  return {
+    id: row.id,
+    conversationId: row.conversation_id,
+    plantId: row.plant_id,
+    role: row.role,
+    body: row.body,
+    status: row.status ?? 'sent',
+    sourceRunId: row.source_run_id,
+    metadata,
+    createdAt: row.created_at,
+  };
+}
+
+
+type CareProfileRow = {
+  id: string;
+  plant_id: string;
+  light_preference?: string | null;
+  watering_rhythm?: string | null;
+  soil_moisture_preference?: string | null;
+  fertilizer_cadence?: string | null;
+  pruning_notes?: string | null;
+  harvest_notes?: string | null;
+  location_notes?: string | null;
+  general_notes?: string | null;
+  source: CareProfileRecord['source'];
+  created_at?: string | null;
+  updated_at?: string | null;
+};
+
+export function mapCareProfile(row: CareProfileRow): CareProfileRecord {
+  return {
+    id: row.id,
+    plantId: row.plant_id,
+    lightPreference: row.light_preference,
+    wateringRhythm: row.watering_rhythm,
+    soilMoisturePreference: row.soil_moisture_preference,
+    fertilizerCadence: row.fertilizer_cadence,
+    pruningNotes: row.pruning_notes,
+    harvestNotes: row.harvest_notes,
+    locationNotes: row.location_notes,
+    generalNotes: row.general_notes,
+    source: row.source,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
   };
 }

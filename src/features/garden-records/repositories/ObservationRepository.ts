@@ -25,7 +25,7 @@ export class ObservationRepository {
       [
         input.id,
         input.plantId,
-        input.seasonId ?? 'season-2026',
+        input.seasonId ?? null,
         input.locationId ?? null,
         input.observedOn,
         input.observedAt,

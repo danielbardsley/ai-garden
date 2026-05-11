@@ -1,5 +1,6 @@
 import { plants } from '../../garden-design/data';
 import {
+  AiConversationMessageRecord,
   AiConversationRecord,
   CareEventRecord,
   CareRecommendationRecord,
@@ -105,5 +106,14 @@ export function webPlantDetail(id: string): PlantDetailRecord | null {
     title: `${plant.displayName} care chat`,
     scope: 'plant',
   };
-  return { plant, observations, photos, careEvents, careRecommendations, conversation };
+  const messages: AiConversationMessageRecord[] = [{
+    id: `message-${id}-intro`,
+    conversationId: conversation.id,
+    plantId: id,
+    role: 'assistant',
+    body: `Hey — I’m tracking your ${plant.commonName ?? plant.displayName} with you. Ask me what to watch next.`,
+    status: 'sent',
+    createdAt: '2026-05-09T12:00:00.000Z',
+  }];
+  return { plant, observations, photos, careEvents, careRecommendations, aiInsights: [], conversation, messages };
 }

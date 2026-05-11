@@ -4,7 +4,7 @@ import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { PhotoRecord } from '../../garden-records/models/GardenRecordTypes';
 import { fmtDate, plantSwatch } from '../../garden-records/viewModels';
-import { useGalleryRecords } from '../../garden-records/hooks/useGardenRecords';
+import { useGalleryRecords, usePhotoTags } from '../../garden-records/hooks/useGardenRecords';
 import { BottomNav } from '../components/BottomNav';
 import { Chip, GlyphIcon, IconButton, PhotoTreatment, ScreenScaffold, SerifText } from '../components/primitives';
 import { theme } from '../theme';
@@ -31,7 +31,7 @@ export function GalleryScreen() {
         <View style={{ paddingHorizontal: 20, marginBottom: 18 }}>
           <Text style={{ color: theme.inkMuted, fontSize: 11, fontWeight: '700', letterSpacing: 1.4, textTransform: 'uppercase', marginBottom: 6 }}>Gallery</Text>
           <SerifText style={{ color: theme.ink, fontSize: 36, lineHeight: 38 }}>
-            <SerifText style={{ fontSize: 36, fontStyle: 'italic' }}>{photos.length}</SerifText> entries,{`\n`}across {plants.length} plants
+            <SerifText style={{ color: theme.primary, fontSize: 36, fontStyle: 'italic', fontWeight: '700' }}>{photos.length}</SerifText> entries,{`\n`}across <SerifText style={{ color: theme.inkSoft, fontSize: 36, fontStyle: 'italic', fontWeight: '600' }}>{plants.length}</SerifText> plants
           </SerifText>
           {loading ? <Text style={{ color: theme.inkMuted, marginTop: 10 }}>Loading local photos…</Text> : null}
           {error ? <Text style={{ color: theme.accent, marginTop: 10 }}>Storage error: {error.message}</Text> : null}
@@ -52,7 +52,7 @@ export function GalleryScreen() {
             <View style={{ paddingHorizontal: 20, flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
               {groups[key].items.map((photo) => (
                 <Pressable key={photo.id} onPress={() => setLightbox(photo)} style={{ width: '32%', aspectRatio: 1, borderRadius: 11, overflow: 'hidden' }}>
-                  <PhotoTreatment tone={photo.tone ?? undefined} glyph={photo.plantGlyph ?? undefined} style={{ flex: 1 }} radius={11} />
+                  <PhotoTreatment tone={photo.tone ?? undefined} glyph={photo.plantGlyph ?? undefined} imageUri={photo.localUri} style={{ flex: 1 }} radius={11} />
                   <View style={{ position: 'absolute', top: 5, left: 5, borderRadius: 999, backgroundColor: 'rgba(0,0,0,0.42)', paddingHorizontal: 6, paddingVertical: 2 }}>
                     <Text style={{ color: '#fff', fontSize: 9 }}>{fmtDate(photo.capturedOn ?? '2026-05-07', { short: true })}</Text>
                   </View>
@@ -79,8 +79,11 @@ export function GalleryScreen() {
 
 function PhotoLightbox({ photo, onClose }: { photo: PhotoRecord | null; onClose: () => void }) {
   const router = useRouter();
+  const { data: tags } = usePhotoTags(photo?.id);
   if (!photo) return null;
-  const tags = ['leaves', 'healthy color', 'plant', 'morning light'];
+  const aiTags = tags.filter((tag) => tag.source === 'ai');
+  const fallbackTags = tags.length > 0 ? tags : [];
+  const visibleTags = aiTags.length > 0 ? aiTags : fallbackTags;
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: 'rgba(15,18,15,0.96)', paddingTop: 54 }}>
@@ -93,7 +96,7 @@ function PhotoLightbox({ photo, onClose }: { photo: PhotoRecord | null; onClose:
           <View style={{ width: 40 }} />
         </View>
         <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 18 }}>
-          <PhotoTreatment tone={photo.tone ?? undefined} glyph={photo.plantGlyph ?? undefined} style={{ width: '100%', aspectRatio: 1 / 1.18 }} radius={18} />
+          <PhotoTreatment tone={photo.tone ?? undefined} glyph={photo.plantGlyph ?? undefined} imageUri={photo.localUri} style={{ width: '100%', aspectRatio: 1 / 1.18 }} radius={18} />
         </View>
         <View style={{ margin: 16, marginBottom: 28, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.10)', padding: 16 }}>
           <Text style={{ color: '#fff', fontSize: 14, lineHeight: 20, marginBottom: 12 }}>{photo.note}</Text>
@@ -102,7 +105,7 @@ function PhotoLightbox({ photo, onClose }: { photo: PhotoRecord | null; onClose:
             <Text style={{ color: 'rgba(255,255,255,0.72)', fontSize: 10, textTransform: 'uppercase', letterSpacing: 1.1 }}>AI auto-tags</Text>
           </View>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-            {tags.map((tag) => <Text key={tag} style={{ color: '#fff', fontSize: 12, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.12)' }}>{tag}</Text>)}
+            {visibleTags.length > 0 ? visibleTags.map((tag) => <Text key={tag.id} style={{ color: '#fff', fontSize: 12, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, backgroundColor: tag.source === 'ai' ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.12)' }}>{tag.tag}</Text>) : <Text style={{ color: 'rgba(255,255,255,0.64)', fontSize: 12 }}>AI tags will appear after categorization.</Text>}
           </View>
           {photo.plantId ? (
             <Pressable onPress={() => { onClose(); router.push(`/plants/${photo.plantId}`); }} style={{ marginTop: 12 }}>

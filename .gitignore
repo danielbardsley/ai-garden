@@ -7,3 +7,11 @@ __pycache__/
 .pytest_cache/
 
 .expo/
+*.egg-info/
+backend/.venv/
+backend/data/
+coverage/
+.coverage
+backend/.coverage
+htmlcov/
+backend/htmlcov/

@@ -75,6 +75,22 @@ export class PhotoRepository {
       );
     }
   }
+
+  async createAiTags(photoId: string, tags: { label: string; confidence?: number | null }[]): Promise<void> {
+    if (Platform.OS === 'web') return;
+    const db = await getGardenDatabase();
+    const now = new Date().toISOString();
+    for (const tag of tags) {
+      const normalized = tag.label.trim().toLowerCase();
+      if (!normalized) continue;
+      await db.runAsync(
+        `INSERT OR IGNORE INTO photo_tags (id, photo_id, tag, source, confidence, created_at, updated_at, deleted_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
+        [`ai-tag-${photoId}-${normalized.replace(/[^a-z0-9]+/g, '-')}`, photoId, normalized, 'ai', tag.confidence ?? null, now, now, null]
+      );
+    }
+  }
+
   async listGalleryPhotos(filter?: { plantId?: string }): Promise<PhotoRecord[]> {
     if (Platform.OS === 'web') return webPhotos(filter);
     const db = await getGardenDatabase();

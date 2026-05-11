@@ -1,11 +1,10 @@
 import { Platform } from 'react-native';
 
-import { seedGardenDemoData } from '../garden-records/seed/seedGardenDemoData';
 import { GardenSQLiteDatabase } from './databaseTypes';
 import { openGardenSqliteDatabase } from './nativeSqlite';
 
 const DATABASE_NAME = 'garden_roof_deck.db';
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 5;
 
 let databasePromise: Promise<GardenSQLiteDatabase> | null = null;
 
@@ -23,7 +22,6 @@ async function initializeDatabase() {
   const db = await openGardenSqliteDatabase(DATABASE_NAME);
   await db.execAsync('PRAGMA foreign_keys = ON;');
   await runMigrations(db);
-  await seedGardenDemoData(db);
   return db;
 }
 
@@ -35,19 +33,31 @@ async function runMigrations(db: GardenSQLiteDatabase) {
     );
   `);
 
-  const row = await db.getFirstAsync<{ version: number }>(
-    'SELECT version FROM schema_migrations WHERE version = ?;',
-    SCHEMA_VERSION
-  );
-
-  if (row) return;
+  const rows = await db.getAllAsync<{ version: number }>('SELECT version FROM schema_migrations;');
+  const applied = new Set(rows.map((item) => item.version));
 
   await db.withTransactionAsync(async () => {
-    await db.execAsync(V1_SCHEMA_SQL);
-    await db.runAsync('INSERT INTO schema_migrations (version, applied_at) VALUES (?, ?);', [
-      SCHEMA_VERSION,
-      new Date().toISOString(),
-    ]);
+    if (!applied.has(1)) {
+      await db.execAsync(V1_SCHEMA_SQL);
+      await db.runAsync('INSERT INTO schema_migrations (version, applied_at) VALUES (?, ?);', [1, new Date().toISOString()]);
+    }
+    if (!applied.has(2)) {
+      await db.execAsync(V2_SCHEMA_SQL);
+      await db.runAsync('INSERT INTO schema_migrations (version, applied_at) VALUES (?, ?);', [2, new Date().toISOString()]);
+    }
+
+    if (!applied.has(3)) {
+      await db.execAsync(V3_SCHEMA_SQL);
+      await db.runAsync('INSERT INTO schema_migrations (version, applied_at) VALUES (?, ?);', [3, new Date().toISOString()]);
+    }
+    if (!applied.has(4)) {
+      await db.execAsync(V4_SCHEMA_SQL);
+      await db.runAsync('INSERT INTO schema_migrations (version, applied_at) VALUES (?, ?);', [4, new Date().toISOString()]);
+    }
+    if (!applied.has(5)) {
+      await db.execAsync(V5_SCHEMA_SQL);
+      await db.runAsync('INSERT INTO schema_migrations (version, applied_at) VALUES (?, ?);', [5, new Date().toISOString()]);
+    }
   });
 }
 
@@ -219,4 +229,80 @@ const V1_SCHEMA_SQL = `
   CREATE INDEX IF NOT EXISTS idx_care_recommendations_status_due ON care_recommendations(status, due_on);
   CREATE INDEX IF NOT EXISTS idx_ai_conversations_plant_updated ON ai_conversations(plant_id, updated_at DESC);
   CREATE INDEX IF NOT EXISTS idx_ai_messages_conversation_created ON ai_messages(conversation_id, created_at);
+`;
+
+const V2_SCHEMA_SQL = `
+  CREATE TABLE IF NOT EXISTS ai_insights (
+    id TEXT PRIMARY KEY,
+    plant_id TEXT REFERENCES plants(id),
+    photo_id TEXT REFERENCES photos(id),
+    observation_id TEXT REFERENCES observations(id),
+    scope TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    title TEXT,
+    body TEXT NOT NULL,
+    status TEXT NOT NULL,
+    confidence REAL,
+    source_run_id TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    deleted_at TEXT
+  );
+
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_ai_insights_source_run ON ai_insights(source_run_id, photo_id, kind);
+  CREATE INDEX IF NOT EXISTS idx_ai_insights_plant ON ai_insights(plant_id, created_at DESC);
+  CREATE INDEX IF NOT EXISTS idx_ai_insights_photo ON ai_insights(photo_id, created_at DESC);
+`;
+
+
+const V3_SCHEMA_SQL = `
+  CREATE TABLE IF NOT EXISTS photo_plant_matches (
+    id TEXT PRIMARY KEY,
+    photo_id TEXT NOT NULL REFERENCES photos(id),
+    observation_id TEXT REFERENCES observations(id),
+    confirmed_plant_id TEXT NOT NULL REFERENCES plants(id),
+    suggested_plant_id TEXT REFERENCES plants(id),
+    source_run_id TEXT,
+    match_source TEXT NOT NULL,
+    confidence REAL,
+    rationale TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    deleted_at TEXT
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_photo_plant_matches_photo ON photo_plant_matches(photo_id);
+  CREATE INDEX IF NOT EXISTS idx_photo_plant_matches_confirmed ON photo_plant_matches(confirmed_plant_id, created_at DESC);
+`;
+
+
+const V4_SCHEMA_SQL = `
+  ALTER TABLE ai_messages ADD COLUMN plant_id TEXT REFERENCES plants(id);
+  ALTER TABLE ai_messages ADD COLUMN status TEXT NOT NULL DEFAULT 'sent';
+  ALTER TABLE ai_messages ADD COLUMN source_run_id TEXT;
+  ALTER TABLE ai_messages ADD COLUMN metadata_json TEXT;
+
+  CREATE INDEX IF NOT EXISTS idx_ai_messages_plant_created ON ai_messages(plant_id, created_at DESC);
+`;
+
+
+const V5_SCHEMA_SQL = `
+  CREATE TABLE IF NOT EXISTS care_profiles (
+    id TEXT PRIMARY KEY,
+    plant_id TEXT NOT NULL REFERENCES plants(id),
+    light_preference TEXT,
+    watering_rhythm TEXT,
+    soil_moisture_preference TEXT,
+    fertilizer_cadence TEXT,
+    pruning_notes TEXT,
+    harvest_notes TEXT,
+    location_notes TEXT,
+    general_notes TEXT,
+    source TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    deleted_at TEXT
+  );
+
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_care_profiles_plant_active ON care_profiles(plant_id) WHERE deleted_at IS NULL;
 `;

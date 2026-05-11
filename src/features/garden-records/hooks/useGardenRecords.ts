@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { PhotoRecord, PlantDetailRecord, PlantRecord } from '../models/GardenRecordTypes';
+import { PhotoRecord, PhotoTagRecord, PlantDetailRecord, PlantRecord } from '../models/GardenRecordTypes';
 import { photoRepository } from '../repositories/PhotoRepository';
 import { plantRepository } from '../repositories/PlantRepository';
 
@@ -44,13 +44,14 @@ function useAsyncData<T>(load: () => Promise<T>, fallback: T, deps: unknown[] = 
 export function useHomeGardenRecords() {
   return useAsyncData(
     async () => {
-      const [plants, attentionPlants] = await Promise.all([
+      const [plants, attentionPlants, photos] = await Promise.all([
         plantRepository.listActivePlants(),
         plantRepository.listPlantsNeedingAttention(),
+        photoRepository.listGalleryPhotos(),
       ]);
-      return { plants, attentionPlants };
+      return { plants, attentionPlants, photos };
     },
-    { plants: [] as PlantRecord[], attentionPlants: [] as PlantRecord[] }
+    { plants: [] as PlantRecord[], attentionPlants: [] as PlantRecord[], photos: [] as PhotoRecord[] }
   );
 }
 
@@ -70,4 +71,9 @@ export function useGalleryRecords(filterPlantId?: string) {
     { plants: [] as PlantRecord[], photos: [] as PhotoRecord[] },
     [filterPlantId]
   );
+}
+
+
+export function usePhotoTags(photoId?: string | null) {
+  return useAsyncData<PhotoTagRecord[]>(() => (photoId ? photoRepository.listTagsForPhoto(photoId) : Promise.resolve([])), [], [photoId]);
 }

@@ -1,4 +1,4 @@
-import { Pressable, StyleProp, Text, View, ViewStyle } from 'react-native';
+import { Image, Pressable, StyleProp, Text, View, ViewStyle } from 'react-native';
 
 import { GardenTheme, theme as defaultTheme } from '../theme';
 
@@ -36,54 +36,62 @@ export function PhotoTreatment({
   tone = '#7da259',
   glyph,
   date,
+  imageUri,
   style,
   radius = 16,
 }: {
   tone?: string;
   glyph?: string;
   date?: string;
+  imageUri?: string | null;
   style?: StyleProp<ViewStyle>;
   radius?: number;
 }) {
   return (
     <View style={[{ overflow: 'hidden', borderRadius: radius, backgroundColor: tone }, style]}>
-      <View style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: tone }} />
-      <View
-        style={{
-          position: 'absolute',
-          right: -26,
-          top: 12,
-          width: 112,
-          height: 70,
-          borderRadius: 60,
-          backgroundColor: 'rgba(35,41,31,0.23)',
-          transform: [{ rotate: '-24deg' }],
-        }}
-      />
-      <View
-        style={{
-          position: 'absolute',
-          left: -34,
-          bottom: -10,
-          width: 130,
-          height: 82,
-          borderRadius: 70,
-          backgroundColor: 'rgba(255,255,255,0.16)',
-          transform: [{ rotate: '18deg' }],
-        }}
-      />
-      <View
-        style={{
-          position: 'absolute',
-          left: '42%',
-          top: '44%',
-          width: 62,
-          height: 34,
-          borderRadius: 34,
-          backgroundColor: 'rgba(35,41,31,0.12)',
-          transform: [{ rotate: '-40deg' }],
-        }}
-      />
+      {imageUri ? (
+        <Image source={{ uri: imageUri }} resizeMode="cover" style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 }} />
+      ) : (
+        <>
+          <View style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: tone }} />
+          <View
+            style={{
+              position: 'absolute',
+              right: -26,
+              top: 12,
+              width: 112,
+              height: 70,
+              borderRadius: 60,
+              backgroundColor: 'rgba(35,41,31,0.23)',
+              transform: [{ rotate: '-24deg' }],
+            }}
+          />
+          <View
+            style={{
+              position: 'absolute',
+              left: -34,
+              bottom: -10,
+              width: 130,
+              height: 82,
+              borderRadius: 70,
+              backgroundColor: 'rgba(255,255,255,0.16)',
+              transform: [{ rotate: '18deg' }],
+            }}
+          />
+          <View
+            style={{
+              position: 'absolute',
+              left: '42%',
+              top: '44%',
+              width: 62,
+              height: 34,
+              borderRadius: 34,
+              backgroundColor: 'rgba(35,41,31,0.12)',
+              transform: [{ rotate: '-40deg' }],
+            }}
+          />
+        </>
+      )}
       {(glyph || date) && (
         <View style={{ position: 'absolute', left: 9, right: 9, bottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           {date ? <MonoText style={{ color: 'rgba(255,255,255,0.94)', fontSize: 10 }}>{date}</MonoText> : <View />}
@@ -94,8 +102,8 @@ export function PhotoTreatment({
   );
 }
 
-export function SerifText({ children, style }: { children: React.ReactNode; style?: any }) {
-  return <Text style={[{ fontFamily: 'Georgia', color: '#23291f' }, style]}>{children}</Text>;
+export function SerifText({ children, style, numberOfLines }: { children: React.ReactNode; style?: any; numberOfLines?: number }) {
+  return <Text numberOfLines={numberOfLines} style={[{ fontFamily: 'Georgia', color: '#23291f' }, style]}>{children}</Text>;
 }
 
 export function MonoText({ children, style }: { children: React.ReactNode; style?: any }) {

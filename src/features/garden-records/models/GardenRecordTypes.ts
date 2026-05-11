@@ -75,6 +75,23 @@ export type PhotoTagRecord = {
   confidence?: number | null;
 };
 
+
+export type CareProfileRecord = {
+  id: string;
+  plantId: string;
+  lightPreference?: string | null;
+  wateringRhythm?: string | null;
+  soilMoisturePreference?: string | null;
+  fertilizerCadence?: string | null;
+  pruningNotes?: string | null;
+  harvestNotes?: string | null;
+  locationNotes?: string | null;
+  generalNotes?: string | null;
+  source: 'manual' | 'ai_assisted' | 'system';
+  createdAt?: string | null;
+  updatedAt?: string | null;
+};
+
 export type CareEventRecord = {
   id: string;
   plantId: string;
@@ -97,6 +114,34 @@ export type CareRecommendationRecord = {
   source: 'manual' | 'ai' | 'system';
 };
 
+
+export type AiInsightRecord = {
+  id: string;
+  plantId?: string | null;
+  photoId?: string | null;
+  observationId?: string | null;
+  scope: 'plant' | 'photo' | 'garden' | 'care';
+  kind: 'summary' | 'attention' | 'care_note' | 'daily_brief' | 'tagging' | 'risk';
+  title?: string | null;
+  body: string;
+  status: 'draft' | 'active' | 'dismissed' | 'archived';
+  confidence?: number | null;
+  sourceRunId?: string | null;
+};
+
+
+export type AiConversationMessageRecord = {
+  id: string;
+  conversationId: string;
+  plantId?: string | null;
+  role: 'user' | 'assistant' | 'system';
+  body: string;
+  status: 'pending' | 'sent' | 'failed';
+  sourceRunId?: string | null;
+  metadata?: Record<string, unknown> | null;
+  createdAt: string;
+};
+
 export type AiConversationRecord = {
   id: string;
   plantId?: string | null;
@@ -110,5 +155,8 @@ export type PlantDetailRecord = {
   photos: PhotoRecord[];
   careEvents: CareEventRecord[];
   careRecommendations: CareRecommendationRecord[];
+  careProfile?: CareProfileRecord | null;
+  aiInsights: AiInsightRecord[];
   conversation: AiConversationRecord;
+  messages?: AiConversationMessageRecord[];
 };

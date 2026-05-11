@@ -3,14 +3,15 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { useHomeGardenRecords } from '../../garden-records/hooks/useGardenRecords';
 import { latestPhotoForPlant, plantSwatch, relDays } from '../../garden-records/viewModels';
+import { HomeWeatherWidget } from '../../weather/components/HomeWeatherWidget';
 import { BottomNav } from '../components/BottomNav';
-import { GlyphIcon, MonoText, PhotoTreatment, ScreenScaffold, SectionHeader, SerifText, StatusDot } from '../components/primitives';
+import { MonoText, PhotoTreatment, ScreenScaffold, SectionHeader, SerifText, StatusDot } from '../components/primitives';
 import { theme } from '../theme';
 
 export function HomeScreen() {
   const router = useRouter();
   const { data, loading, error } = useHomeGardenRecords();
-  const { plants, attentionPlants } = data;
+  const { plants, attentionPlants, photos } = data;
 
   return (
     <ScreenScaffold>
@@ -27,16 +28,7 @@ export function HomeScreen() {
           {error ? <Text style={{ color: theme.accent, marginTop: 10 }}>Storage error: {error.message}</Text> : null}
         </View>
 
-        <View style={{ marginHorizontal: 20, marginBottom: 24, padding: 15, backgroundColor: theme.surface, borderRadius: 18, borderWidth: 0.5, borderColor: theme.line, flexDirection: 'row', alignItems: 'center', gap: 13 }}>
-          <View style={{ width: 40, height: 40, borderRadius: 13, backgroundColor: theme.leaf3, alignItems: 'center', justifyContent: 'center' }}>
-            <GlyphIcon name="leaf" color={theme.primaryDeep} size={20} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={{ color: theme.ink, fontSize: 15, fontWeight: '600' }}>62°F · partly sun</Text>
-            <Text style={{ color: theme.inkSoft, fontSize: 12, marginTop: 2 }}>Last frost 22 days ago · zone 7a</Text>
-          </View>
-          <SerifText style={{ color: theme.inkSoft, fontSize: 14, fontStyle: 'italic' }}>week 19</SerifText>
-        </View>
+        <HomeWeatherWidget />
 
         {attentionPlants.length > 0 ? (
           <View style={{ marginBottom: 26 }}>
@@ -66,11 +58,11 @@ export function HomeScreen() {
         <View style={{ paddingHorizontal: 20, flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
           {plants.map((plant) => {
             const swatch = plantSwatch(plant);
-            const latest = latestPhotoForPlant(plant);
+            const latest = latestPhotoForPlant(plant, photos);
             return (
               <Pressable key={plant.id} onPress={() => router.push(`/plants/${plant.id}`)} style={{ width: '48%', marginBottom: 10 }}>
                 <View style={{ aspectRatio: 1 / 1.15, borderRadius: 16, overflow: 'hidden', borderWidth: 0.5, borderColor: theme.line }}>
-                  <PhotoTreatment tone={latest?.tone ?? swatch[0]} glyph={plant.glyph ?? undefined} style={{ flex: 1 }} />
+                  <PhotoTreatment tone={latest?.tone ?? swatch[0]} glyph={plant.glyph ?? undefined} imageUri={latest?.localUri} style={{ flex: 1 }} />
                   <View style={{ position: 'absolute', top: 8, left: 8, borderRadius: 999, backgroundColor: theme.name === 'Forest' ? 'rgba(31,42,35,0.82)' : 'rgba(255,255,255,0.86)', paddingVertical: 4, paddingHorizontal: 8, flexDirection: 'row', alignItems: 'center' }}>
                     <StatusDot kind={plant.statusKind === 'archived' ? 'idle' : plant.statusKind} theme={theme} />
                     <Text style={{ color: theme.ink, fontSize: 10, fontWeight: '600' }}>{plant.statusLabel}</Text>

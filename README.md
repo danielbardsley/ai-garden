@@ -25,6 +25,7 @@ The scaffold anticipates future modules for:
 
 ```bash
 npm run start
+npm run start:go:tailscale
 npm run web
 npm run build:web
 npm run smoke:web
@@ -37,3 +38,7 @@ Expo web should remain compatible with path-prefix hosting:
 
 - frontend: `/apps/garden-roof-deck/`
 - API, if used: `/api/garden-roof-deck/`
+
+## Runtime + AI plumbing
+
+See `docs/runtime-ai-plumbing.md` for Expo Go over Tailscale, AI health diagnostics, runtime env expectations, and restart persistence.
