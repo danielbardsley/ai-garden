@@ -13,6 +13,7 @@ export function BottomNav() {
   const path = usePathname();
   const isHome = path === '/';
   const isGallery = path.startsWith('/gallery');
+  const isProfile = path.startsWith('/profile');
 
   const Tab = ({ label, icon, active, onPress }: { label: string; icon: string; active: boolean; onPress: () => void }) => (
     <Pressable onPress={onPress} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 2 }}>
@@ -66,7 +67,7 @@ export function BottomNav() {
         <GlyphIcon name="camera" color={theme.bg} size={24} />
       </Pressable>
       <Tab label="Reminders" icon="chat" active={false} onPress={() => undefined} />
-      <Tab label="Profile" icon="profile" active={false} onPress={() => undefined} />
+      <Tab label="Profile" icon="profile" active={isProfile} onPress={() => router.push('/profile')} />
     </View>
   );
 }
