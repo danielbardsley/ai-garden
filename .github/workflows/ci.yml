@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test -- --runInBand
+
+      - name: Build web export
+        run: npm run build:web
+
+      - name: Smoke web export
+        run: npm run smoke:web
+
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DATA_DIR: /tmp/garden-roof-deck-ci
+      GARDEN_AGENT_ENABLED: 'false'
+      GARDEN_AGENT_PROVIDER: openai
+      GARDEN_AGENT_MODEL: test-model
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/pyproject.toml
+
+      - name: Install dependencies
+        working-directory: backend
+        run: uv sync --dev
+
+      - name: Test
+        working-directory: backend
+        run: uv run pytest -q
