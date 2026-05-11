@@ -1,7 +1,7 @@
 import { CameraCapturedPicture, CameraView, useCameraPermissions } from 'expo-camera';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useRef, useState } from 'react';
-import { Image, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, Easing, Image, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { useHomeGardenRecords } from '../../garden-records/hooks/useGardenRecords';
 import { PlantRecord } from '../../garden-records/models/GardenRecordTypes';
@@ -237,13 +237,60 @@ function Crosshair() {
 }
 
 function ScanningOverlay() {
+  const sweep = useRef(new Animated.Value(0)).current;
+  const pulse = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const sweepLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(sweep, { toValue: 1, duration: 1900, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+        Animated.timing(sweep, { toValue: 0, duration: 1900, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+      ])
+    );
+    const pulseLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1, duration: 1200, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 0, duration: 1200, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+      ])
+    );
+    sweepLoop.start();
+    pulseLoop.start();
+    return () => {
+      sweepLoop.stop();
+      pulseLoop.stop();
+    };
+  }, [pulse, sweep]);
+
+  const translateY = sweep.interpolate({ inputRange: [0, 1], outputRange: [-145, 145] });
+  const lineOpacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.46, 0.95] });
+  const cardScale = pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.02] });
+
   return (
-    <View style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: 'rgba(10,12,10,0.35)', alignItems: 'center', justifyContent: 'center' }}>
-      <View style={{ position: 'absolute', left: 40, right: 40, top: '46%', height: 2, backgroundColor: theme.leaf2 }} />
-      <View style={{ position: 'absolute', bottom: 90, borderRadius: 999, paddingVertical: 11, paddingHorizontal: 15, backgroundColor: 'rgba(255,255,255,0.16)', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-        <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: theme.leaf2 }} />
-        <Text style={{ color: '#fff', fontSize: 13, fontWeight: '700' }}>Preparing garden entry…</Text>
+    <View style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: 'rgba(10,12,10,0.34)', alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ width: '76%', height: '52%', borderRadius: 28, borderWidth: 1, borderColor: 'rgba(214,228,191,0.42)', overflow: 'hidden', backgroundColor: 'rgba(31,42,35,0.10)' }}>
+        <View style={{ position: 'absolute', top: 0, bottom: 0, left: '33%', width: 1, backgroundColor: 'rgba(214,228,191,0.16)' }} />
+        <View style={{ position: 'absolute', top: 0, bottom: 0, left: '66%', width: 1, backgroundColor: 'rgba(214,228,191,0.16)' }} />
+        <View style={{ position: 'absolute', left: 0, right: 0, top: '33%', height: 1, backgroundColor: 'rgba(214,228,191,0.16)' }} />
+        <View style={{ position: 'absolute', left: 0, right: 0, top: '66%', height: 1, backgroundColor: 'rgba(214,228,191,0.16)' }} />
+        <Animated.View
+          style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            top: '50%',
+            height: 92,
+            opacity: lineOpacity,
+            transform: [{ translateY }],
+          }}
+        >
+          <View style={{ height: 2, backgroundColor: theme.leaf2, shadowColor: theme.leaf2, shadowOpacity: 0.8, shadowRadius: 12 }} />
+          <View style={{ height: 90, backgroundColor: 'rgba(125,162,89,0.13)' }} />
+        </Animated.View>
       </View>
+      <Animated.View style={{ position: 'absolute', bottom: 88, borderRadius: 999, paddingVertical: 11, paddingHorizontal: 15, backgroundColor: 'rgba(255,255,255,0.16)', flexDirection: 'row', alignItems: 'center', gap: 8, transform: [{ scale: cardScale }] }}>
+        <Animated.View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: theme.leaf2, opacity: lineOpacity }} />
+        <Text style={{ color: '#fff', fontSize: 13, fontWeight: '700' }}>Scanning garden photo…</Text>
+      </Animated.View>
     </View>
   );
 }
