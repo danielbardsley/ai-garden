@@ -1,3 +1,3 @@
-import { HomeScreen } from '../src/features/garden-design/screens/HomeScreen';
+import { GardenEntryScreen } from '../src/features/garden-setup/screens/GardenEntryScreen';
 
-export default HomeScreen;
+export default GardenEntryScreen;

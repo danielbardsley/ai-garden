@@ -2,16 +2,18 @@ import { useRouter } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { useHomeGardenRecords } from '../../garden-records/hooks/useGardenRecords';
+import { GardenSetup } from '../../garden-setup/models/GardenSetup';
 import { latestPhotoForPlant, plantSwatch, relDays } from '../../garden-records/viewModels';
 import { HomeWeatherWidget } from '../../weather/components/HomeWeatherWidget';
 import { BottomNav } from '../components/BottomNav';
 import { MonoText, PhotoTreatment, ScreenScaffold, SectionHeader, SerifText, StatusDot } from '../components/primitives';
 import { theme } from '../theme';
 
-export function HomeScreen() {
+export function HomeScreen({ gardenSetup, justOnboarded = false }: { gardenSetup?: GardenSetup | null; justOnboarded?: boolean }) {
   const router = useRouter();
   const { data, loading, error } = useHomeGardenRecords();
   const { plants, attentionPlants, photos } = data;
+  const gardenName = gardenSetup?.name?.trim() || 'the garden';
 
   return (
     <ScreenScaffold>
@@ -22,10 +24,19 @@ export function HomeScreen() {
           </Text>
           <SerifText style={{ color: theme.ink, fontSize: 38, lineHeight: 40, letterSpacing: -0.5 }}>
             Good morning,{`\n`}
-            <SerifText style={{ color: theme.primary, fontSize: 38, fontStyle: 'italic' }}>the deck</SerifText> is waking up.
+            <SerifText style={{ color: theme.primary, fontSize: 38, fontStyle: 'italic' }}>{gardenName.toLowerCase()}</SerifText> is waking up.
           </SerifText>
           {loading ? <Text style={{ color: theme.inkMuted, marginTop: 10 }}>Opening local garden journal…</Text> : null}
           {error ? <Text style={{ color: theme.accent, marginTop: 10 }}>Storage error: {error.message}</Text> : null}
+          {justOnboarded ? (
+            <View style={{ marginTop: 16, padding: 15, borderRadius: 16, backgroundColor: theme.surface, borderWidth: 0.5, borderColor: theme.line }}>
+              <Text style={{ color: theme.inkMuted, fontSize: 10, fontWeight: '800', letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 5 }}>Garden setup complete</Text>
+              <Text style={{ color: theme.inkSoft, fontSize: 13, lineHeight: 19 }}>Next, add your first plant. Use the camera button below to identify a leaf and start its timeline.</Text>
+              <Pressable onPress={() => router.push('/camera')} style={{ alignSelf: 'flex-start', marginTop: 12, borderRadius: 999, backgroundColor: theme.primary, paddingHorizontal: 14, paddingVertical: 9 }}>
+                <Text style={{ color: theme.bg, fontSize: 12, fontWeight: '800' }}>Add first plant</Text>
+              </Pressable>
+            </View>
+          ) : null}
         </View>
 
         <HomeWeatherWidget />
