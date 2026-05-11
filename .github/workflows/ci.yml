@@ -49,6 +49,7 @@ jobs:
       GARDEN_AGENT_ENABLED: 'false'
       GARDEN_AGENT_PROVIDER: openai
       GARDEN_AGENT_MODEL: test-model
+      PYTHONPATH: .
 
     steps:
       - name: Checkout
