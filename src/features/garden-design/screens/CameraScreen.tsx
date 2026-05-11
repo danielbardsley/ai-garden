@@ -182,8 +182,6 @@ export function CameraScreen() {
             <GlyphIcon name="gallery" color="#fff" />
           </View>
         </View>
-      ) : phase === 'analyzing' ? (
-        <SerifText style={{ paddingTop: 24, paddingBottom: 56, textAlign: 'center', color: 'rgba(255,255,255,0.86)', fontSize: 14, fontStyle: 'italic' }}>identifying plant…</SerifText>
       ) : null}
     </View>
   );
