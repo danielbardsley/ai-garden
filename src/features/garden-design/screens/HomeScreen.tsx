@@ -6,7 +6,7 @@ import { useHomeGardenRecords } from '../../garden-records/hooks/useGardenRecord
 import { GardenSetup } from '../../garden-setup/models/GardenSetup';
 import { latestPhotoForPlant, plantSwatch } from '../../garden-records/viewModels';
 import { plantCardSubheader } from '../plantCardMetadata';
-import { buildHomeTitleContext, fallbackHomeTitle, homeTitleSignature, loadingHomeTitle, readHomeTitleCache, requestAiHomeTitle, writeHomeTitleCache } from '../homeTitle';
+import { buildHomeTitleContext, fallbackHomeTitle, homeTitleSignature, loadingHomeTitle, readHomeTitleCache, requestAiHomeTitle, writeHomeTitleCache, highlightedHomeTitleSegments } from '../homeTitle';
 import { HomeWeatherWidget } from '../../weather/components/HomeWeatherWidget';
 import { BottomNav } from '../components/BottomNav';
 import { PhotoTreatment, ScreenScaffold, SectionHeader, SerifText, StatusDot } from '../components/primitives';
@@ -21,6 +21,7 @@ export function HomeScreen({ gardenSetup, justOnboarded = false }: { gardenSetup
   const fallbackTitle = useMemo(() => fallbackHomeTitle(titleContext), [titleContext]);
   const [heroTitle, setHeroTitle] = useState(fallbackTitle);
   const [titleLoading, setTitleLoading] = useState(false);
+  const titleSegments = useMemo(() => highlightedHomeTitleSegments(heroTitle, titleContext.gardenName), [heroTitle, titleContext.gardenName]);
   const titlePulse = useRef(new Animated.Value(0.68)).current;
 
   useEffect(() => {
@@ -66,7 +67,11 @@ export function HomeScreen({ gardenSetup, justOnboarded = false }: { gardenSetup
           </Text>
           <Animated.View style={{ opacity: titleLoading ? titlePulse : 1 }}>
             <SerifText style={{ color: theme.ink, fontSize: 38, lineHeight: 40, letterSpacing: -0.5 }}>
-              {heroTitle}
+              {titleSegments.map((segment, index) => (
+                <SerifText key={`${segment.text}-${index}`} style={{ color: segment.highlighted ? theme.primary : theme.ink, fontSize: 38, lineHeight: 40, letterSpacing: -0.5, fontStyle: segment.highlighted ? 'italic' : 'normal', fontWeight: segment.highlighted ? '700' : '400' }}>
+                  {segment.text}
+                </SerifText>
+              ))}
             </SerifText>
           </Animated.View>
           {loading ? <Text style={{ color: theme.inkMuted, marginTop: 10 }}>Opening local garden journal…</Text> : null}

@@ -1,4 +1,4 @@
-import { buildHomeTitleContext, fallbackHomeTitle, homeTitleSignature, loadingHomeTitle, sanitizeHomeTitle } from '../homeTitle';
+import { buildHomeTitleContext, fallbackHomeTitle, highlightedHomeTitleSegments, homeTitleSignature, loadingHomeTitle, sanitizeHomeTitle } from '../homeTitle';
 import { GardenSetup } from '../../garden-setup/models/GardenSetup';
 import { PlantRecord } from '../../garden-records/models/GardenRecordTypes';
 
@@ -26,5 +26,12 @@ describe('home title helpers', () => {
 
   it('provides contextual loading copy', () => {
     expect(loadingHomeTitle({ timeOfDay: 'night' })).toBe('Listening to the quiet garden…');
+  });
+
+  it('segments the garden name for green title highlighting', () => {
+    expect(highlightedHomeTitleSegments('Back Garden is waking up.', 'Back Garden')).toEqual([
+      { text: 'Back Garden', highlighted: true },
+      { text: ' is waking up.', highlighted: false },
+    ]);
   });
 });

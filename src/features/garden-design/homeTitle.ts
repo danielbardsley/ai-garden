@@ -78,6 +78,26 @@ export function loadingHomeTitle(context: Pick<HomeTitleContext, 'timeOfDay'>): 
   return 'Listening to the quiet garden…';
 }
 
+
+export type HighlightedTitleSegment = {
+  text: string;
+  highlighted: boolean;
+};
+
+export function highlightedHomeTitleSegments(title: string, gardenName?: string | null): HighlightedTitleSegment[] {
+  const name = gardenName?.trim();
+  if (!name) return [{ text: title, highlighted: false }];
+  const lowerTitle = title.toLowerCase();
+  const lowerName = name.toLowerCase();
+  const index = lowerTitle.indexOf(lowerName);
+  if (index < 0) return [{ text: title, highlighted: false }];
+  return [
+    { text: title.slice(0, index), highlighted: false },
+    { text: title.slice(index, index + name.length), highlighted: true },
+    { text: title.slice(index + name.length), highlighted: false },
+  ].filter((segment) => segment.text.length > 0);
+}
+
 export function sanitizeHomeTitle(value?: string | null): string {
   const cleaned = (value ?? '').replace(/[\n\r]+/g, ' ').replace(/^["“”]+|["“”]+$/g, '').replace(/\s+/g, ' ').trim();
   if (!cleaned) return 'Your garden is waking up.';
