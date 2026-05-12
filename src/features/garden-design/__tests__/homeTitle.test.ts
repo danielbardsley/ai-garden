@@ -12,6 +12,12 @@ describe('home title helpers', () => {
     expect(homeTitleSignature(context)).toContain('Back Garden');
   });
 
+  it('uses clear first-plant copy for a new garden', () => {
+    const freshSetup = { ...setup, createdAt: '2026-05-11T00:00:00.000Z' };
+    const context = buildHomeTitleContext({ setup: freshSetup, plants: [], attentionPlants: [], photos: [], now: new Date('2026-05-11T08:00:00') });
+    expect(fallbackHomeTitle(context)).toBe('Back Garden is ready for its first plant.');
+  });
+
   it('prioritizes attention and preserves waking-up tone fallback', () => {
     const attention = buildHomeTitleContext({ setup, plants: [basil], attentionPlants: [basil], photos: [], now: new Date('2026-05-11T19:00:00') });
     expect(fallbackHomeTitle(attention)).toBe('Basil wants a last look.');

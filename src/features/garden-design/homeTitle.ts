@@ -63,7 +63,7 @@ export function fallbackHomeTitle(context: HomeTitleContext): string {
     return sanitizeHomeTitle(`${plant?.name ?? 'One plant'} wants a ${context.timeOfDay === 'evening' ? 'last ' : ''}look.`);
   }
   if (context.attentionCount > 1) return sanitizeHomeTitle(`${context.attentionCount} plants want a quick look.`);
-  if (context.isNewGarden) return sanitizeHomeTitle(`${context.gardenName} is ready for its first note.`);
+  if (context.isNewGarden) return sanitizeHomeTitle(`${context.gardenName} is ready for its first plant.`);
   if (context.recentPhotoCount > 0) return sanitizeHomeTitle(`${context.gardenName} has new things to remember.`);
   if (context.timeOfDay === 'morning') return sanitizeHomeTitle(`${context.gardenName} is waking up.`);
   if (context.timeOfDay === 'afternoon') return sanitizeHomeTitle(`A good afternoon for ${context.gardenName}.`);
