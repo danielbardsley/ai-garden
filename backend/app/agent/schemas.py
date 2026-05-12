@@ -289,3 +289,18 @@ class CareProfileDraftOutput(BaseModel):
     sources: list[CareRecommendationSource] = Field(default_factory=list)
 
     model_config = {"populate_by_name": True}
+
+
+class HomeTitleRequest(BaseModel):
+    request_id: str = Field(alias="requestId")
+    occurred_at: str = Field(alias="occurredAt")
+    context: dict[str, Any] = Field(default_factory=dict)
+
+    model_config = {"populate_by_name": True}
+
+
+class HomeTitleOutput(BaseModel):
+    title: str
+    confidence: float = 0.5
+
+    model_config = {"populate_by_name": True}

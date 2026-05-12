@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from app.agent.schemas import AgentEventRequest, CaptureReflectionOutput, PhotoIdentificationOutput, PhotoIdentificationRequest, PlantChatOutput, PlantChatRequest, CareRecommendationOutput, CareRecommendationRequest, CareProfileDraftOutput, CareProfileDraftRequest
+from app.agent.schemas import AgentEventRequest, CaptureReflectionOutput, PhotoIdentificationOutput, PhotoIdentificationRequest, PlantChatOutput, PlantChatRequest, CareRecommendationOutput, CareRecommendationRequest, CareProfileDraftOutput, CareProfileDraftRequest, HomeTitleOutput, HomeTitleRequest
 from app.config import Settings
 
 
@@ -59,6 +59,13 @@ class GardenAgent:
     def run_care_profile_draft(self, request: CareProfileDraftRequest) -> tuple[dict[str, Any], dict[str, int | None]]:
         self._require_provider()
         output = self._openai_care_profile_draft(request)
+        return output.model_dump(by_alias=True), {"prompt_tokens": None, "completion_tokens": None}
+
+
+
+    def run_home_title(self, request: HomeTitleRequest) -> tuple[dict[str, Any], dict[str, int | None]]:
+        self._require_provider()
+        output = self._openai_home_title(request)
         return output.model_dump(by_alias=True), {"prompt_tokens": None, "completion_tokens": None}
 
     def _require_provider(self) -> None:
@@ -272,3 +279,36 @@ class GardenAgent:
         if isinstance(content, str):
             return CareProfileDraftOutput(summary=content, profile={}, confidence=0.35, caveats=["Draft returned as free text; review carefully."])
         return CareProfileDraftOutput.model_validate(content)
+
+
+    def _openai_home_title(self, request: HomeTitleRequest) -> HomeTitleOutput:
+        try:
+            from agno.agent import Agent
+            from agno.models.openai import OpenAIChat
+        except Exception as exc:  # pragma: no cover
+            raise RuntimeError("Agno OpenAI dependencies are unavailable") from exc
+
+        agent = Agent(
+            model=OpenAIChat(id=self.settings.garden_agent_model, api_key=self.settings.openai_api_key),
+            instructions=[
+                "You write one short Garden Roof Deck home-screen title.",
+                "Be highly contextual: use time of day, garden state, attention items, recent activity, weather/location signals when supplied.",
+                "Keep the gentle 'your deck/garden is waking up' tone: friendly, personal, calm, and specific.",
+                "Return one plain title only. No markdown, no emoji, no quotation marks, no unsupported claims.",
+                "Target 45 characters, hard maximum 70 characters.",
+            ],
+        )
+        prompt = (
+            "Create one short title for the app home screen from this compact context. "
+            "Prefer specific garden signals over generic greeting copy. If context is thin, use a warm waking-up style fallback. Context JSON:\n"
+            f"{json.dumps(request.context, ensure_ascii=False)}"
+        )
+        response = agent.run(prompt, output_schema=HomeTitleOutput)
+        content = getattr(response, "content", response)
+        if isinstance(content, HomeTitleOutput):
+            return content
+        if isinstance(content, dict):
+            return HomeTitleOutput.model_validate(content)
+        if isinstance(content, str):
+            return HomeTitleOutput(title=content[:70], confidence=0.4)
+        return HomeTitleOutput.model_validate(content)

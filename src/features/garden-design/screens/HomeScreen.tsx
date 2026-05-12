@@ -1,10 +1,12 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'expo-router';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Animated, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { useHomeGardenRecords } from '../../garden-records/hooks/useGardenRecords';
 import { GardenSetup } from '../../garden-setup/models/GardenSetup';
 import { latestPhotoForPlant, plantSwatch } from '../../garden-records/viewModels';
 import { plantCardSubheader } from '../plantCardMetadata';
+import { buildHomeTitleContext, fallbackHomeTitle, homeTitleSignature, loadingHomeTitle, readHomeTitleCache, requestAiHomeTitle, writeHomeTitleCache } from '../homeTitle';
 import { HomeWeatherWidget } from '../../weather/components/HomeWeatherWidget';
 import { BottomNav } from '../components/BottomNav';
 import { PhotoTreatment, ScreenScaffold, SectionHeader, SerifText, StatusDot } from '../components/primitives';
@@ -14,7 +16,46 @@ export function HomeScreen({ gardenSetup, justOnboarded = false }: { gardenSetup
   const router = useRouter();
   const { data, loading, error } = useHomeGardenRecords();
   const { plants, attentionPlants, photos } = data;
-  const gardenName = gardenSetup?.name?.trim() || 'the garden';
+  const titleContext = useMemo(() => buildHomeTitleContext({ setup: gardenSetup, plants, attentionPlants, photos }), [gardenSetup, plants, attentionPlants, photos]);
+  const titleSignature = useMemo(() => homeTitleSignature(titleContext), [titleContext]);
+  const fallbackTitle = useMemo(() => fallbackHomeTitle(titleContext), [titleContext]);
+  const [heroTitle, setHeroTitle] = useState(fallbackTitle);
+  const [titleLoading, setTitleLoading] = useState(false);
+  const titlePulse = useRef(new Animated.Value(0.68)).current;
+
+  useEffect(() => {
+    let cancelled = false;
+    const cached = readHomeTitleCache(titleSignature);
+    if (cached) {
+      setHeroTitle(cached.title);
+      setTitleLoading(false);
+      return () => { cancelled = true; };
+    }
+    setHeroTitle(loading ? loadingHomeTitle(titleContext) : fallbackTitle);
+    setTitleLoading(true);
+    requestAiHomeTitle(titleContext).then((title) => {
+      if (cancelled) return;
+      const resolved = title ?? fallbackTitle;
+      setHeroTitle(resolved);
+      writeHomeTitleCache(resolved, titleSignature);
+    }).finally(() => {
+      if (!cancelled) setTitleLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, [fallbackTitle, loading, titleContext, titleSignature]);
+
+  useEffect(() => {
+    if (!titleLoading) {
+      titlePulse.setValue(1);
+      return;
+    }
+    const animation = Animated.loop(Animated.sequence([
+      Animated.timing(titlePulse, { toValue: 1, duration: 900, useNativeDriver: true }),
+      Animated.timing(titlePulse, { toValue: 0.68, duration: 900, useNativeDriver: true }),
+    ]));
+    animation.start();
+    return () => animation.stop();
+  }, [titleLoading, titlePulse]);
 
   return (
     <ScreenScaffold>
@@ -23,10 +64,11 @@ export function HomeScreen({ gardenSetup, justOnboarded = false }: { gardenSetup
           <Text style={{ color: theme.inkMuted, fontSize: 11, fontWeight: '700', letterSpacing: 1.4, textTransform: 'uppercase', marginBottom: 6 }}>
             Thursday, May 7
           </Text>
-          <SerifText style={{ color: theme.ink, fontSize: 38, lineHeight: 40, letterSpacing: -0.5 }}>
-            Good morning,{`\n`}
-            <SerifText style={{ color: theme.primary, fontSize: 38, fontStyle: 'italic' }}>{gardenName.toLowerCase()}</SerifText> is waking up.
-          </SerifText>
+          <Animated.View style={{ opacity: titleLoading ? titlePulse : 1 }}>
+            <SerifText style={{ color: theme.ink, fontSize: 38, lineHeight: 40, letterSpacing: -0.5 }}>
+              {heroTitle}
+            </SerifText>
+          </Animated.View>
           {loading ? <Text style={{ color: theme.inkMuted, marginTop: 10 }}>Opening local garden journal…</Text> : null}
           {error ? <Text style={{ color: theme.accent, marginTop: 10 }}>Storage error: {error.message}</Text> : null}
           {justOnboarded ? (

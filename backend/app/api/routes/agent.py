@@ -4,7 +4,7 @@ from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
 from pydantic import ValidationError
 
 from app.agent.garden_agent import GardenAgent
-from app.agent.schemas import AgentEventAccepted, AgentEventRequest, AgentRunStatus, PhotoIdentificationRequest, PlantChatRequest, CareRecommendationRequest, CareProfileDraftRequest
+from app.agent.schemas import AgentEventAccepted, AgentEventRequest, AgentRunStatus, PhotoIdentificationRequest, PlantChatRequest, CareRecommendationRequest, CareProfileDraftRequest, HomeTitleRequest
 from app.infrastructure.repositories.agent_run_repository import AgentRunRepository
 
 router = APIRouter(prefix="/agent", tags=["agent"])
@@ -210,6 +210,31 @@ def _run_care_profile_draft(draft_request: CareProfileDraftRequest, request: Req
             prompt_tokens=usage.get("prompt_tokens"),
             completion_tokens=usage.get("completion_tokens"),
         )
+        status = "succeeded"
+    except Exception as exc:
+        repository.fail_run(run.run_id, str(exc))
+        status = "failed"
+    return AgentEventAccepted(runId=run.run_id, status=status, providerConfigured=agent.provider_configured, output=output)
+
+
+@router.post("/home-title", response_model=AgentEventAccepted, response_model_by_alias=True)
+def submit_home_title(title_request: HomeTitleRequest, request: Request) -> AgentEventAccepted:
+    settings = request.app.state.settings
+    repository = AgentRunRepository(settings.data_dir)
+    agent = GardenAgent(settings)
+    agent_event = AgentEventRequest(
+        eventId=title_request.request_id,
+        eventType="garden.home_title_requested",
+        entityType="garden",
+        entityId="home",
+        occurredAt=title_request.occurred_at,
+        context=title_request.context,
+    )
+    run = repository.create_run(agent_event, provider=settings.garden_agent_provider, model=settings.garden_agent_model, status="running")
+    output = None
+    try:
+        output, usage = agent.run_home_title(title_request)
+        repository.complete_run(run.run_id, output=output, prompt_tokens=usage.get("prompt_tokens"), completion_tokens=usage.get("completion_tokens"))
         status = "succeeded"
     except Exception as exc:
         repository.fail_run(run.run_id, str(exc))
